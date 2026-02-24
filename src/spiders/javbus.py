@@ -63,10 +63,16 @@ class JavBusSpider(AsyncBaseCrawler):
             poster_path = 'thumbs'
         else:
             logger.error('javbus 未知的影片马赛克类别')
-            raise Exception('javbus 未知的影片马赛克类别')
+            # raise Exception('javbus 未知的影片马赛克类别')
+            return None
 
         # --- 简介 ---
         tilte = selector.css('h3::text').get()
+
+        if not tilte:
+            logger.error('javbus 未找到标题')
+            # raise Exception('javbus 未找到标题')
+            return None
 
         # --- 制作团队 ---
         move_info_sel = selector.css('div.row.movie div.info')
@@ -79,6 +85,11 @@ class JavBusSpider(AsyncBaseCrawler):
                 info_dict[seq_list[0]] = seq_list[1].strip()
 
         code = info_dict.get('識別碼')
+        if not code:
+            logger.error('javbus 未找到识别码')
+            # raise Exception('javbus 未找到识别码')
+            return None
+
         releasedate = info_dict.get('發行日期')
         series = info_dict.get('系列')      # 合集 set
 
@@ -103,6 +114,8 @@ class JavBusSpider(AsyncBaseCrawler):
 
         # --- 标签 ---
         genres = move_info_sel.css('p > span.genre > label > a::text').getall()
+
+        genres.append(censored_or_unce)
 
         # print(genres)
 
@@ -132,8 +145,17 @@ class JavBusSpider(AsyncBaseCrawler):
     async def search(self, num_code : str):
         search_url = f'https://www.javbus.com/{num_code}'
         response = await self.get(search_url,headers=javbus_headers, cookies=javbus_cookies)
+        if response is None:
+            logger.error(f'javbus 搜索 {num_code} 失败')
+            return None
+
         movie_info_meta = self._parse(search_url,response)
-        movie_info_meta.save_to_nfo(f'{num_code}.nfo')
+        if movie_info_meta is None:
+            logger.error(f'javbus 解析 {num_code} 失败')
+            return None
+        # movie_info_meta.save_to_nfo(f'output/{file_stem}.nfo')
+
+        return movie_info_meta
 
     # async def test(self):
     #     test_url = 'https://www.javbus.com/mide-565'

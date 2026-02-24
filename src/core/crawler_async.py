@@ -5,6 +5,10 @@ from curl_cffi import AsyncSession, Response
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
+def return_none_on_failure(retry_state):
+    logger(f"爬虫重试已耗尽，最后一次异常是: {retry_state.outcome.exception()}")
+    return None
+
 class AsyncBaseCrawler:
     def __init__(
         self,
@@ -57,6 +61,7 @@ class AsyncBaseCrawler:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type(Exception),
+        retry_error_callback=return_none_on_failure,
         reraise=True
     )
     async def request(
@@ -77,6 +82,7 @@ class AsyncBaseCrawler:
             except Exception as e:
                 logger.error(f"请求失败: {url} | 错误: {e}")
                 raise e
+                # return None
 
     async def get(self, url: str, params: Optional[Dict] = None, **kwargs) -> Response:
         return await self.request("GET", url, params=params, **kwargs)
