@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 
 def return_none_on_failure(retry_state):
-    logger(f"爬虫重试已耗尽，最后一次异常是: {retry_state.outcome.exception()}")
+    print(f"爬虫重试已耗尽，最后一次异常是: {retry_state.outcome.exception()}")
     return None
 
 class AsyncBaseCrawler:

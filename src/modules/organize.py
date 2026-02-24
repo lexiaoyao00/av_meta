@@ -23,7 +23,7 @@ class Organize:
         self.organized_file = Path(settings.select_dir) / settings.output_dir / self.orgin_file.name
 
 
-    def _download_imgs(self):
+    def download_imgs(self):
         """下载图片,包括剧照,封面等等
             下载后将对应的元数据修改为本地文件名
         """
@@ -108,5 +108,5 @@ class Organize:
         """
         shutil.move(self.orgin_file, self.organized_file)
         logger.debug(f'移动文件 {self.orgin_file} 到 {self.organized_file}')
-        self._download_imgs()
+        self.download_imgs()
         self._save_to_nfo()

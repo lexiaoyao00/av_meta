@@ -1,7 +1,8 @@
 import flet as ft
 from config import settings
 from widgets import Error
-from utils.signals import start_scan_sig,update_settings_sig
+from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig
+from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 @ft.control
 class SearchRow(ft.Row):
     expand : bool = True
@@ -30,17 +31,134 @@ class SearchRow(ft.Row):
         update_settings_sig.send('start_scan', field='select_dir', value=self._select_dir)
 
 
-    def start(self, e):
+    async def start(self, e):
         if not self._select_dir:
             self.page.show_dialog(Error("请先选择目录"))
             return
 
-        start_scan_sig.send('start_scan', path = self._select_dir)
+        await start_scan_sig.send_async('start_scan', path = self._select_dir)
+
+
+@ft.control
+class MetaInfo(ft.Container):
+    expand : bool = True
+
+    def init(self):
+        self.ref_code = ft.Ref[ft.TextField]()
+        self.ref_site = ft.Ref[ft.TextField]()
+        self.ref_title = ft.Ref[ft.TextField]()
+        self.ref_actor = ft.Ref[ft.TextField]()
+        self.ref_tag = ft.Ref[ft.TextField]()
+        self.ref_intro = ft.Ref[ft.TextField]()
+        self.ref_director = ft.Ref[ft.TextField]()
+        self.ref_maker = ft.Ref[ft.TextField]()
+        self.ref_publisher = ft.Ref[ft.TextField]()
+
+    def build(self):
+        self.content = ft.Column(
+            expand=True,
+            controls=[
+                ft.Row(
+                    expand=True,
+                    controls=[
+                        ft.TextField(label="番号",expand=1,ref=self.ref_code),
+                        ft.TextField(label="网站",expand=2,ref=self.ref_site),
+                        ft.TextField(label='标题',expand=3,ref=self.ref_title),
+                    ]
+                ),
+                ft.TextField(label='演员',expand=True,ref=self.ref_actor),
+                ft.TextField(label='标签/类别',expand=True,ref=self.ref_tag),
+                ft.TextField(label='简介', multiline=True,expand=True,ref=self.ref_intro),
+                ft.Row(
+                    expand=True,
+                    controls=[
+                        ft.TextField(label='导演',expand=True,ref=self.ref_director),
+                        ft.TextField(label='制作商',expand=True,ref=self.ref_maker),
+                        ft.TextField(label='发行商',expand=True,ref=self.ref_publisher),
+                    ]
+                ),
+            ]
+        )
+
+    def update_meta(self, sender, **kw):
+        metadata : NfoMovieModel = kw.get('metadata')
+        if not metadata:
+            return
+        self.ref_code.current.value = metadata.num_code
+        self.ref_site.current.value = metadata.website
+        self.ref_title.current.value = metadata.title
+        actors = metadata.actors
+        if isinstance(actors, list):
+            actor_name_list = [actor.name for actor in actors]
+            self.ref_actor.current.value = ",".join(actor_name_list)
+        tags : NfoMovieTagModel = metadata.tag_meta
+        if tags:
+            tag_list = []
+            if tags.tag:
+                tag_list.extend(tags.tag)
+            if tags.genre:
+                tag_list.extend(tags.genre)
+            self.ref_tag.current.value = ",".join(tag_list)
+
+        introduction_meta : NfoMovieIntroductionModel = metadata.introduction_meta
+        if introduction_meta:
+            self.ref_intro.current.value = introduction_meta.plot
+
+        production_meta : NfoMovieProductionModel = metadata.production_meta
+        if production_meta:
+            self.ref_director.current.value = production_meta.director
+            self.ref_maker.current.value = production_meta.studio
+            self.ref_publisher.current.value = production_meta.publisher
+
+        self.update()
+
+
+@ft.control
+class CoverView(ft.Container):
+
+    def init(self):
+        self.expand = True
+        self.ref_cover = ft.Ref[ft.Image]()
+        self.ref_thumb = ft.Ref[ft.Image]()
+
+
+
+    def build(self):
+        self.content = ft.Row(
+            expand=True,
+            controls=[
+                ft.Image(src='src/assets/default_cover.jpg', tooltip="封面",expand=1,ref=self.ref_cover),
+                ft.Image(src='src/assets/default_tumb.jpg', tooltip="缩略图",expand=2,ref=self.ref_thumb),
+            ]
+        )
+
+    def update_meta(self, sender, **kw):
+        metadata : NfoMovieModel = kw.get('metadata')
+        if not metadata:
+            return
+
+        imgs = metadata.imgs_meta
+        if imgs:
+            print(imgs.poster)
+            print(imgs.thumb)
+            self.ref_cover.current.src = imgs.poster
+            self.ref_thumb.current.src = imgs.thumb
+
+        self.update()
+
 
 
 @ft.control
 class HomeView(ft.Container):
     expand : bool = True
+
+    def init(self):
+        self.search_row = SearchRow()
+        self.meta_info = MetaInfo()
+        self.cover_view = CoverView()
+
+
+
 
     def build(self):
         self.page.appbar.title = "Home"
@@ -48,9 +166,14 @@ class HomeView(ft.Container):
             expand=True,
             scroll= ft.ScrollMode.AUTO,
             controls=[
-                SearchRow(),
+                self.search_row,
+                self.meta_info,
+                self.cover_view,
             ]
         )
+
+        show_matadata_sig.connect(self.meta_info.update_meta)
+        show_matadata_sig.connect(self.cover_view.update_meta)
 
     def show_meta(self):
         ...

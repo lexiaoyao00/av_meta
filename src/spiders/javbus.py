@@ -11,6 +11,7 @@ from curl_cffi import Response
 from loguru import logger
 from yarl import URL
 from typing import List
+from utils.signals import update_metadata_sig
 
 
 javbus_cookies = {

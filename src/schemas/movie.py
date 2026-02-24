@@ -31,7 +31,7 @@ class NfoMovieProductionModel(BaseModel):
     """emby 的制作团队元数据模型"""
     director : Optional[str] = None  # 导演
     writer : Optional[str] = None  # 编剧
-    studio : Optional[str] = None  # 工作室
+    studio : Optional[str] = None  # 工作室/制作商
     publisher : Optional[str] = None  # 发行商
 
 
@@ -76,7 +76,7 @@ class NfoMovieModel(BaseModel):
         path = Path(save_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, 'w', encoding='utf-8') as f:
-            print(f'save to {str(path)}')
+            # print(f'save to {str(path)}')
             f.write(xml_str)
 
     # 自动打平：将所有子模型的字段提取到顶层

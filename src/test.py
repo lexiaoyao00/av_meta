@@ -13,7 +13,7 @@ async def main():
     file_dir = 'F:/pikpakDownload'
     analysis_file = AnalysisFile(file_dir)
     file_list = analysis_file.get_video_path_list()
-    success,failed,uncertain = analysis_file.extract_av_code(files=file_list)
+    success = analysis_file.extract_av_code(files=file_list)
     tasks:Dict[str,asyncio.Task] = {}
     for file,code in success.items():
         print(file,code)

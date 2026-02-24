@@ -21,6 +21,7 @@ class Downloader:
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
         }
+        self.cookies = None
         self.max_concurrency = max_concurrency
         self._semaphore = None
 
@@ -62,23 +63,23 @@ class Downloader:
         logger.debug(f"[Sync] 开始下载: {url}")
         with Session(impersonate=self.impersonate) as s:
             # stream=True 是大文件下载的关键
-            with s.get(url, stream=True, timeout=self.timeout, headers=self.headers) as r:
-                r.raise_for_status()
-                total_size = self._get_file_size(r)
-                downloaded = 0
+            r = s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
+            r.raise_for_status()
+            total_size = self._get_file_size(r)
+            downloaded = 0
 
-                with open(save_path, "wb") as f:
-                    for chunk in r.aiter_content(chunk_size=chunk_size):
-                        if chunk:
-                            f.write(chunk)
-                            downloaded += len(chunk)
+            with open(save_path, "wb") as f:
+                for chunk in r.aiter_content(chunk_size=chunk_size):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
 
-                            last_emit_time = self._emit_progress(
-                                file_path=save_path,
-                                current=downloaded,
-                                total=total_size,
-                                last_emit_time=last_emit_time
-                            )
+                        last_emit_time = self._emit_progress(
+                            file_path=save_path,
+                            current=downloaded,
+                            total=total_size,
+                            last_emit_time=last_emit_time
+                        )
 
         logger.info(f"\n[Sync] 下载完成: {save_path}")
 
@@ -91,7 +92,7 @@ class Downloader:
             last_emit_time = 0
             async with AsyncSession(impersonate=self.impersonate) as s:
                 # 异步模式同样需要 stream=True
-                r = await s.get(url, stream=True, timeout=self.timeout, headers=self.headers)
+                r = await s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
                 r.raise_for_status()
                 total_size = self._get_file_size(r)
                 downloaded = 0
