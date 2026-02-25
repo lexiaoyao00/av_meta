@@ -3,14 +3,20 @@ from pydantic import BaseModel
 from typing import List, Dict
 from schemas.movie import  NfoMovieModel
 from utils.decorator import singleton
-from utils.signals import update_metadata_sig
+from utils.signals import (
+    update_metadata_sig,
+    start_scan_sig,
+    scan_failed_sig,
+    )
+from loguru import logger
+import asyncio
 
 class AppState(BaseModel):
     """
     用来保存当前搜刮状态，如成功的元数据
     """
     success_file_metadata: Dict[str, NfoMovieModel] = {} # 保存成功获取的元数据, 文件 -> 元数据
-    failed_file: List[str] = [] # 保存获取元数据失败的文件名
+    failed_file: Dict[str,str] = {} # 保存获取元数据失败的文件名和失败原因
 
 @singleton
 class AppStateManager:
@@ -20,18 +26,40 @@ class AppStateManager:
 
     def __init__(self):
         self.app_state = AppState()
+        self._async_lock = asyncio.Lock()
 
-        update_metadata_sig.connect(self.update_metadata)
+        start_scan_sig.connect(self.oe_start_scan)
+        update_metadata_sig.connect(self.oe_update_metadata)
+        scan_failed_sig.connect(self.update_failed_file)
+
+    async def oe_start_scan(self, sender, **kw):
+        """
+        清理前面的扫描结果
+        """
+        self.app_state.success_file_metadata.clear()
+        self.app_state.failed_file.clear()
 
 
-    def update_metadata(self, file_name: str, metadata: NfoMovieModel):
+    async def oe_update_metadata(self, sender, **kw):
         """
         更新元数据
         """
-        self.app_state.success_file_metadata[file_name] = metadata
+        file_name: str = kw.get("file_name")
+        metadata: NfoMovieModel = kw.get("metadata")
+        if file_name is None or metadata is None:
+            logger.error("更新元数据失败,参数错误")
+            return
+        async with self._async_lock:
+            self.app_state.success_file_metadata[file_name] = metadata
 
-    def update_failed_file(self, failed_files:List[str], msg:str="未知原因"):
+    async def update_failed_file(self, sender, **kw):
         """
         更新失败文件
         """
-        self.app_state.failed_file.extend(failed_files)
+        failed_files:List[str] = kw.get("failed_files")
+        msg:str = kw.get("msg","未知原因")
+        if not failed_files:
+            logger.warning("更新失败文件失败,文件列表为空")
+            return
+        async with self._async_lock:
+            self.app_state.failed_file.update({file:msg for file in failed_files})

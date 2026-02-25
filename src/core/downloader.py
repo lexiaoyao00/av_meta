@@ -1,9 +1,10 @@
 import asyncio
 from curl_cffi import Session,AsyncSession,Response
 from utils.decorator import singleton
-from utils.signals import download_progress_sig
+from utils.signals import download_progress_sig,download_finished_sig
 import time
 from loguru import logger
+from pathlib import Path
 
 @singleton
 class Downloader:
@@ -59,54 +60,66 @@ class Downloader:
         """
         同步下载方法
         """
-        last_emit_time = 0
-        logger.debug(f"[Sync] 开始下载: {url}")
-        with Session(impersonate=self.impersonate) as s:
-            # stream=True 是大文件下载的关键
-            r = s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
-            r.raise_for_status()
-            total_size = self._get_file_size(r)
-            downloaded = 0
+        try:
+            last_emit_time = 0
+            logger.debug(f"[Sync] 开始下载: {url}")
+            with Session(impersonate=self.impersonate) as s:
+                # stream=True 是大文件下载的关键
+                r = s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
+                r.raise_for_status()
+                total_size = self._get_file_size(r)
+                downloaded = 0
 
-            with open(save_path, "wb") as f:
-                for chunk in r.aiter_content(chunk_size=chunk_size):
-                    if chunk:
-                        f.write(chunk)
-                        downloaded += len(chunk)
+                Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+                with open(save_path, "wb") as f:
+                    for chunk in r.aiter_content(chunk_size=chunk_size):
+                        if chunk:
+                            f.write(chunk)
+                            downloaded += len(chunk)
 
-                        last_emit_time = self._emit_progress(
-                            file_path=save_path,
-                            current=downloaded,
-                            total=total_size,
-                            last_emit_time=last_emit_time
-                        )
+                            last_emit_time = self._emit_progress(
+                                file_path=save_path,
+                                current=downloaded,
+                                total=total_size,
+                                last_emit_time=last_emit_time
+                            )
 
-        logger.info(f"\n[Sync] 下载完成: {save_path}")
+            logger.info(f"\n[Sync] 下载完成: {save_path}")
+            download_finished_sig.send('downloader',url=url, file_path=save_path, sucessed=True)
+        except Exception as e:
+            logger.error(f"\n[Sync] 下载失败: {save_path}，错误信息: {e}")
+            download_finished_sig.send('downloader',url=url, file_path=save_path, sucessed=False, msg=e)
 
     async def download_async(self, url: str, save_path: str, chunk_size: int = 1024 * 64):
         """
         异步下载方法
         """
-        logger.debug(f"[Async] 开始下载: {url}")
-        async with self.semaphore:
-            last_emit_time = 0
-            async with AsyncSession(impersonate=self.impersonate) as s:
-                # 异步模式同样需要 stream=True
-                r = await s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
-                r.raise_for_status()
-                total_size = self._get_file_size(r)
-                downloaded = 0
+        try:
+            logger.debug(f"[Async] 开始下载: {url}")
+            async with self.semaphore:
+                last_emit_time = 0
+                async with AsyncSession(impersonate=self.impersonate) as s:
+                    # 异步模式同样需要 stream=True
+                    r = await s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
+                    r.raise_for_status()
+                    total_size = self._get_file_size(r)
+                    downloaded = 0
 
-                with open(save_path, "wb") as f:
-                    # 异步迭代器读取 chunk aiter_content
-                    async for chunk in r.aiter_content(chunk_size=chunk_size):
-                        f.write(chunk)
-                        downloaded += len(chunk)
+                    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+                    with open(save_path, "wb") as f:
+                        # 异步迭代器读取 chunk aiter_content
+                        async for chunk in r.aiter_content(chunk_size=chunk_size):
+                            f.write(chunk)
+                            downloaded += len(chunk)
 
-                        last_emit_time = self._emit_progress(
-                            file_path=save_path,
-                            current=downloaded,
-                            total=total_size,
-                            last_emit_time=last_emit_time
-                        )
-        logger.info(f"\n[Async] 下载完成: {save_path}")
+                            last_emit_time = self._emit_progress(
+                                file_path=save_path,
+                                current=downloaded,
+                                total=total_size,
+                                last_emit_time=last_emit_time
+                            )
+            logger.info(f"\n[Async] 下载完成: {save_path}")
+            await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=True)
+        except Exception as e:
+            logger.error(f"\n[Async] 下载失败: {save_path}，错误信息: {e}")
+            await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=False, msg=e)

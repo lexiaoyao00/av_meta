@@ -11,7 +11,6 @@ from curl_cffi import Response
 from loguru import logger
 from yarl import URL
 from typing import List
-from utils.signals import update_metadata_sig
 
 
 javbus_cookies = {
@@ -108,10 +107,10 @@ class JavBusSpider(AsyncBaseCrawler):
         # print(f'poster = {poster}')
         # print(f'thumb = {thumb}')
 
-        fanarts = selector.css('div#sample-waterfall a.sample-box::attr(href)').getall()
+        extrafanart = selector.css('div#sample-waterfall a.sample-box::attr(href)').getall()
         # print(f'fanarts = {fanarts}')
 
-        movie_images = NfoMovieImageModel(poster=poster,thumb=thumb,fanart=fanarts)
+        movie_images = NfoMovieImageModel(poster=poster,thumb=thumb,extrafanart=extrafanart)
 
         # --- 标签 ---
         genres = move_info_sel.css('p > span.genre > label > a::text').getall()

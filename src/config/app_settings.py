@@ -9,14 +9,14 @@ PRO_PATH = Path(__file__).parent.parent.parent
 class BaseSettings(BaseModel):
 
     # 目录管理
-    output_dir : str = None # 输出目录, 默认None为资源目录下的 output 文件夹
     select_dir : str = None # 选择目录, 待搜刮文件资源的存放目录
+    output_dir : str = None # 输出目录, 默认None为资源目录下的 output 文件夹
 
     # ========== 数据验证 ==========
     @model_validator(mode="after")
     def _model_validate(self):
         if self.output_dir is None:
-            self.output_dir = str(PRO_PATH / "output")
+            self.output_dir = "output"
         return self
 
 class Settings(BaseSettings):

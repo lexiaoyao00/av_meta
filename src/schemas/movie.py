@@ -19,7 +19,7 @@ class NfoActorModel(BaseModel):
 class NfoMovieImageModel(BaseModel):
     """emby 的图片元数据模型"""
     poster : Optional[str] = None  # 海报(实际显示的封面)
-    fanart : Optional[List[str]] = None  # 剧照
+    extrafanart : Optional[List[str]] = None  # 剧照
     thumb : Optional[str] = None  # 缩略图
 
 class NfoMovieTagModel(BaseModel):

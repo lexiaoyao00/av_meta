@@ -1,7 +1,7 @@
 import flet as ft
 from config import settings
 from widgets import Error
-from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig
+from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig,scrape_finished_sig
 from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 @ft.control
 class SearchRow(ft.Row):
@@ -80,7 +80,7 @@ class MetaInfo(ft.Container):
             ]
         )
 
-    def update_meta(self, sender, **kw):
+    async def update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return
@@ -127,12 +127,22 @@ class CoverView(ft.Container):
         self.content = ft.Row(
             expand=True,
             controls=[
-                ft.Image(src='src/assets/default_cover.jpg', tooltip="封面",expand=1,ref=self.ref_cover),
-                ft.Image(src='src/assets/default_tumb.jpg', tooltip="缩略图",expand=2,ref=self.ref_thumb),
+                ft.Image(
+                    src='src/assets/default_cover.jpg',
+                    tooltip="封面",
+                    expand=1,
+                    ref=self.ref_cover,
+                    error_content=ft.Text("封面加载失败")),
+                ft.Image(
+                    src='src/assets/default_tumb.jpg',
+                    tooltip="缩略图",
+                    expand=2,
+                    ref=self.ref_thumb,
+                    error_content=ft.Text("缩略图加载失败")),
             ]
         )
 
-    def update_meta(self, sender, **kw):
+    async def update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return

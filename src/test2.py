@@ -2,7 +2,7 @@ from core.downloader import Downloader
 from spiders.javbus import javbus_cookies,javbus_headers
 
 imgs = [
-    # 'https://www.javbus.com/pics/thumb/1qee.jpg',
+    'https://www.javbus.com/pics/thumb/1qee.jpg',
     'https://www.javbus.com/pics/cover/1qee_b.jpg'
 ]
 

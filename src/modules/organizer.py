@@ -13,14 +13,15 @@ from loguru import logger
 from typing import List
 import asyncio
 
-class Organize:
+class Organizer:
     """整理文件并保存nfo文件"""
     def __init__(self, moive_info : NfoMovieModel, file_path : str|Path):
         """传入的 moive_info 是爬虫爬取到的元数据,修改后的元数据传入可能会报错"""
         self.moive_info = moive_info
         self.orgin_file = Path(file_path)
         # TODO:整理后的文件路径根据配置来
-        self.organized_file = Path(settings.select_dir) / settings.output_dir / self.orgin_file.name
+        av_dir = self.orgin_file.stem
+        self.organized_file = Path(settings.output_dir) / av_dir / self.orgin_file.name
 
 
     def download_imgs(self):
@@ -41,7 +42,7 @@ class Organize:
         if imgs_meta.thumb is not None:
             self._download_thumb(imgs_meta,av_code,downloader,organized_dir)
 
-        if imgs_meta.fanart is not None:
+        if imgs_meta.extrafanart is not None:
             self._download_fanart(imgs_meta,av_code,downloader,organized_dir)
 
         self.moive_info.imgs_meta = imgs_meta
@@ -84,7 +85,7 @@ class Organize:
         """下载剧照,保存到 extrafanart 中"""
         counter = 1
         new_fanart : List[str] = []
-        for fanart_img in imgs_meta.fanart:
+        for fanart_img in imgs_meta.extrafanart:
             suffix = fanart_img.split('.')[-1]
             save_file = f'{av_code}-fanart-{counter}.{suffix}'
             save_path = organized_dir / 'extrafanart' / save_file
@@ -92,7 +93,7 @@ class Organize:
             counter += 1
             new_fanart.append(save_path.stem)
 
-        imgs_meta.fanart = new_fanart
+        imgs_meta.extrafanart = new_fanart
 
 
 
@@ -100,13 +101,16 @@ class Organize:
     def _save_to_nfo(self):
         """保存为nfo文件
         """
-        organized_dir = self.organized_file.parent
-        self.moive_info.save_to_nfo(organized_dir / 'test.nfo')
+        output_dir = self.organized_file.parent
+        file_stem = self.organized_file.stem
+        nfo_path = output_dir / f'{file_stem}.nfo'
+        self.moive_info.save_to_nfo(nfo_path)
+        logger.debug(f'文件 {self.orgin_file} 的番号信息已保存')
 
     def organize(self):
         """整理文件并保存nfo文件
         """
-        shutil.move(self.orgin_file, self.organized_file)
+        # shutil.move(self.orgin_file, self.organized_file)
         logger.debug(f'移动文件 {self.orgin_file} 到 {self.organized_file}')
         self.download_imgs()
         self._save_to_nfo()
