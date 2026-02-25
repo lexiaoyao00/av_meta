@@ -1,16 +1,9 @@
-from core.downloader import Downloader
-from spiders.javbus import javbus_cookies,javbus_headers
+from spiders.jav123 import Jav123Spider
+import asyncio
 
-imgs = [
-    'https://www.javbus.com/pics/thumb/1qee.jpg',
-    'https://www.javbus.com/pics/cover/1qee_b.jpg'
-]
+async def main():
+    spider = Jav123Spider()
+    await spider.search('mide-565')
 
-downloader = Downloader()
-downloader.cookies = javbus_cookies
-downloader.headers = javbus_headers
-
-for img in imgs:
-    file = img.split('/')[-1]
-    downloader.download_sync(img, file)
-
+if __name__ == '__main__':
+    asyncio.run(main())

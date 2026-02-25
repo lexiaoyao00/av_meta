@@ -143,13 +143,13 @@ class JavBusSpider(AsyncBaseCrawler):
         return movie_meta
 
     async def search(self, num_code : str):
-        search_url = f'https://www.javbus.com/{num_code}'
-        response = await self.get(search_url,headers=javbus_headers, cookies=javbus_cookies)
+        search_url = self.base_url / num_code
+        response = await self.get(str(search_url),headers=javbus_headers, cookies=javbus_cookies)
         if response is None:
             logger.error(f'javbus 搜索 {num_code} 失败')
             return None
 
-        movie_info_meta = self._parse(search_url,response)
+        movie_info_meta = self._parse(str(search_url),response)
         if movie_info_meta is None:
             logger.error(f'javbus 解析 {num_code} 失败')
             return None

@@ -26,6 +26,10 @@ class AsyncBaseCrawler:
         self.max_concurrency = max_concurrency
         self._semaphore = None  # 懒加载信号量
 
+    async def search(self, num_code : str):
+        """钩子函数，子类需要实现，搜索番号"""
+        pass
+
     @property
     def semaphore(self):
         if self._semaphore is None:
@@ -68,6 +72,7 @@ class AsyncBaseCrawler:
         self,
         method: str,
         url: str,
+        allow_redirects: bool = True,
         **kwargs
     ) -> Response:
         """底层统一请求方法"""
@@ -75,7 +80,7 @@ class AsyncBaseCrawler:
             session = await self.init_session()
             try:
                 logger.info(f"[{method.upper()}] -> {url}")
-                response : Response = await session.request(method, url, **kwargs)
+                response : Response = await session.request(method, url,allow_redirects=allow_redirects, **kwargs)
                 # 可以在这里统一处理状态码逻辑
                 response.raise_for_status()
                 return response

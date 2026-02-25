@@ -7,6 +7,7 @@ from utils.signals import (
     update_metadata_sig,
     start_scan_sig,
     scan_failed_sig,
+    del_failed_file_sig,
     )
 from loguru import logger
 import asyncio
@@ -31,6 +32,7 @@ class AppStateManager:
         start_scan_sig.connect(self.oe_start_scan)
         update_metadata_sig.connect(self.oe_update_metadata)
         scan_failed_sig.connect(self.update_failed_file)
+        del_failed_file_sig.connect(self.ov_del_failed_file)
 
     async def oe_start_scan(self, sender, **kw):
         """
@@ -63,3 +65,14 @@ class AppStateManager:
             return
         async with self._async_lock:
             self.app_state.failed_file.update({file:msg for file in failed_files})
+
+    async def ov_del_failed_file(self, sender, **kw):
+        """
+        删除失败文件, 前面失败的文件在成功后需要删除
+        """
+        file_name: str = kw.get("file_name")
+        if file_name is None:
+            logger.warning("删除失败文件失败,文件名为空")
+            return
+        async with self._async_lock:
+            self.app_state.failed_file.pop(file_name, None)

@@ -11,11 +11,12 @@ from loguru import logger
 from typing import List
 import asyncio
 from schemas.movie import  NfoMovieModel
-from spiders.javbus import JavBusSpider
+from core.crawler_async import AsyncBaseCrawler
+from spiders import spider_type_dict
 from utils.decorator import singleton
 from core.app_state import AppStateManager
 from modules.organizer import Organizer
-from utils.tool_func import sync_wrapper
+from typing import Dict
 
 @singleton
 class Controller:
@@ -26,19 +27,10 @@ class Controller:
         scrape_finished_sig.connect(self.oe_scrape_finished)
 
 
-    async def oe_start_scan(self, sender, **kw):
-        path : str = kw.get('path')
-        # print(f"test_start called, path: {path}")
-        logger.debug(f'从路径 {path} 开始扫描')
-        analysis_file = AnalysisFile(path)
-        file_list = analysis_file.get_video_path_list()
-        success = await analysis_file.extract_av_code(files=file_list)
-
-        file_names = list(success.keys())
-
+    async def scrape(self, spider : AsyncBaseCrawler, pending_files : Dict[str,str]):
+        file_names = list(pending_files.keys())
         tasks = []
-        spider = JavBusSpider()
-        for file,code in success.items():
+        for file,code in pending_files.items():
             task = asyncio.create_task(spider.search(code))
             tasks.append(task)
 
@@ -52,9 +44,23 @@ class Controller:
                 # result.save_to_nfo(save_path)
                 # logger.debug(f'文件 {file} 的番号信息已保存到 {save_path}')
             else:
-                logger.debug(f'文件 {file} 的番号未找到')
+                logger.debug(f'文件 {file} 的番号暂时未找到')
                 asyncio.create_task(scan_failed_sig.send_async('controller', failed_file=file, msg="爬取失败"))
 
+    async def oe_start_scan(self, sender, **kw):
+        path : str = kw.get('path')
+        # print(f"test_start called, path: {path}")
+        logger.debug(f'从路径 {path} 开始扫描')
+        analysis_file = AnalysisFile(path)
+        file_list = analysis_file.get_video_path_list()
+        pending_files = await analysis_file.extract_av_code(files=file_list)
+
+        for name,spider_cls in spider_type_dict.items():
+            spider = spider_cls()
+            await self.scrape(spider, pending_files)
+            await asyncio.sleep(1)      # 等待一秒更新数据
+            if not self.app_state_manager.app_state.failed_file:    # 如果所有文件都成功，则退出循环
+                break
 
         # show_matadata_sig.send('scaner', metadata=results[0])
         asyncio.create_task(scrape_finished_sig.send_async('controller'))
