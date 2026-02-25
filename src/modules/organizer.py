@@ -12,6 +12,14 @@ import shutil
 from loguru import logger
 from typing import List
 import asyncio
+from string import Template
+from pydantic import BaseModel
+
+class AvDir(BaseModel):
+    """视频保存的目录关键字"""
+    title : str
+    num_code : str
+    actor : str = 'Unknown'
 
 class Organizer:
     """整理文件并保存nfo文件"""
@@ -19,9 +27,29 @@ class Organizer:
         """传入的 moive_info 是爬虫爬取到的元数据,修改后的元数据传入可能会报错"""
         self.moive_info = moive_info
         self.orgin_file = Path(file_path)
+
+        self.init_dir()
+
+    def init_dir(self):
+        """初始化目录"""
         # TODO:整理后的文件路径根据配置来
-        av_dir = self.orgin_file.stem
-        self.organized_file = Path(settings.output_dir) / av_dir / self.orgin_file.name
+        template = Template('$actor/$title')
+
+        actor_str = 'Unknown'
+        if self.moive_info.actors :
+            actor_str = ' '.join([actor.name for actor in self.moive_info.actors])
+
+        actor_str.strip()
+        av_dir = AvDir(
+            title=self.moive_info.title,
+            num_code=self.moive_info.num_code,
+            actor= actor_str
+        )
+        print(f'当前标题: "{av_dir.title}"')
+        av_dir_str = template.substitute(av_dir.model_dump())
+        self.organized_file = Path(settings.select_dir) / settings.output_dir / av_dir_str / self.orgin_file.name
+
+        self.organized_file.parent.mkdir(parents=True, exist_ok=True)
 
 
     def download_imgs(self):

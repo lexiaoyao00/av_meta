@@ -1,7 +1,7 @@
 import asyncio
 from loguru import logger
 from typing import Any, Dict, Optional, Union
-from curl_cffi import AsyncSession, Response
+from curl_cffi import AsyncSession, Response,exceptions
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
@@ -82,6 +82,8 @@ class AsyncBaseCrawler:
                 logger.info(f"[{method.upper()}] -> {url}")
                 response : Response = await session.request(method, url,allow_redirects=allow_redirects, **kwargs)
                 # 可以在这里统一处理状态码逻辑
+                if response.status_code == 404:  # 404 代表不存在，直接返回，不用重试
+                    return None
                 response.raise_for_status()
                 return response
             except Exception as e:

@@ -10,48 +10,49 @@ from parsel import Selector
 from curl_cffi import Response
 from loguru import logger
 from yarl import URL
-from typing import List
+from typing import List,Dict
 
 
-javbus_cookies = {
-    'existmag': 'mag',
-    'PHPSESSID': 'bv30trfu2405r7e8scnlukrh05',
-    '4fJN_2132_saltkey': 'tfyoLLKy',
-    '4fJN_2132_lastvisit': '1771895547',
-    '4fJN_2132_sid': 'JLLFXr',
-    '4fJN_2132_seccodecSJLLFXr': '3468.c0ba0bbad7ca07295a',
-    '4fJN_2132_ulastactivity': 'b44cDl0C5wQFITtD5%2BWU1L4XaxsgzYnBpOjy5sLs%2B2QjRRNJplDq',
-    '4fJN_2132_creditnotice': '0D1D1D0D0D0D0D0D0D404293',
-    '4fJN_2132_creditbase': '0D8D8D0D0D0D0D0D0',
-    '4fJN_2132_creditrule': '%E6%AF%8F%E5%A4%A9%E7%99%BB%E9%8C%84',
-    '4fJN_2132_lastcheckfeed': '404293%7C1771899157',
-    '4fJN_2132_lastact': '1771899167%09uc.php%09',
-    '4fJN_2132_auth': 'b625%2BKWlO8xJu5qTT8wSIBd5W4y52xjjzyqGQ2A%2Fxta0Kuoq0itIEm79YxVCTdNVoEZw8NtDLiRRVwUdLLQb4RGmUAY',
-    'bus_auth': '6ebe1%2FSIieLvxC8Zhf%2FiVLumoyFA%2FVwigD75v0JJjkd%2FM8ZpkkBvS%2FbgHZi0',
-}
 
-javbus_headers = {
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-    'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,en-US;q=0.6',
-    'cache-control': 'max-age=0',
-    'priority': 'u=0, i',
-    'sec-ch-ua': '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'document',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-site': 'none',
-    'sec-fetch-user': '?1',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
-}
 
 
 class JavBusSpider(AsyncBaseCrawler):
     def __init__(self):
-        self.base_url = URL('https://www.javbus.com')
         super().__init__()
+        self.base_url = URL('https://www.javbus.com')
+        self.cookies = {
+            # 'existmag': 'mag',
+            # 'PHPSESSID': 'bv30trfu2405r7e8scnlukrh05',
+            # '4fJN_2132_saltkey': 'tfyoLLKy',
+            # '4fJN_2132_lastvisit': '1771895547',
+            # '4fJN_2132_sid': 'JLLFXr',
+            # '4fJN_2132_seccodecSJLLFXr': '3468.c0ba0bbad7ca07295a',
+            # '4fJN_2132_ulastactivity': 'b44cDl0C5wQFITtD5%2BWU1L4XaxsgzYnBpOjy5sLs%2B2QjRRNJplDq',
+            # '4fJN_2132_creditnotice': '0D1D1D0D0D0D0D0D0D404293',
+            # '4fJN_2132_creditbase': '0D8D8D0D0D0D0D0D0',
+            # '4fJN_2132_creditrule': '%E6%AF%8F%E5%A4%A9%E7%99%BB%E9%8C%84',
+            # '4fJN_2132_lastcheckfeed': '404293%7C1771899157',
+            # '4fJN_2132_lastact': '1771899167%09uc.php%09',
+            # '4fJN_2132_auth': 'b625%2BKWlO8xJu5qTT8wSIBd5W4y52xjjzyqGQ2A%2Fxta0Kuoq0itIEm79YxVCTdNVoEZw8NtDLiRRVwUdLLQb4RGmUAY',
+            # 'bus_auth': '6ebe1%2FSIieLvxC8Zhf%2FiVLumoyFA%2FVwigD75v0JJjkd%2FM8ZpkkBvS%2FbgHZi0',
+        }
 
+        self.headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,en-US;q=0.6',
+            'cache-control': 'max-age=0',
+            'priority': 'u=0, i',
+            'sec-ch-ua': '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
+            'sec-ch-ua-mobile': '?0',
+            'referrer': 'https://www.javbus.com/',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+        }
     def _parse(self,url:str, response : Response):
         selector  = Selector(response.text)
 
@@ -78,7 +79,7 @@ class JavBusSpider(AsyncBaseCrawler):
         move_info_sel = selector.css('div.row.movie div.info')
         info_list = move_info_sel.xpath('./p[not(@class)]').xpath('normalize-space(.)').getall()
 
-        info_dict = {}
+        info_dict : Dict[str,str]  = {}
         for info in info_list:
             seq_list = info.split(':',1)
             if len(seq_list) == 2:
@@ -89,6 +90,7 @@ class JavBusSpider(AsyncBaseCrawler):
             logger.error('javbus 未找到识别码')
             # raise Exception('javbus 未找到识别码')
             return None
+        tilte = tilte.strip(code).strip()        # 去掉车牌
 
         releasedate = info_dict.get('發行日期')
         series = info_dict.get('系列')      # 合集 set
@@ -137,7 +139,7 @@ class JavBusSpider(AsyncBaseCrawler):
 
     async def search(self, num_code : str):
         search_url = self.base_url / num_code
-        response = await self.get(str(search_url),headers=javbus_headers, cookies=javbus_cookies)
+        response = await self.get(str(search_url),headers=self.headers, cookies=self.cookies)
         if response is None:
             logger.error(f'javbus 搜索 {num_code} 失败')
             return None

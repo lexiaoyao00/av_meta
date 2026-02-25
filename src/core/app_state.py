@@ -5,7 +5,6 @@ from schemas.movie import  NfoMovieModel
 from utils.decorator import singleton
 from utils.signals import (
     update_metadata_sig,
-    start_scan_sig,
     scan_failed_sig,
     del_failed_file_sig,
     )
@@ -29,15 +28,15 @@ class AppStateManager:
         self.app_state = AppState()
         self._async_lock = asyncio.Lock()
 
-        start_scan_sig.connect(self.oe_start_scan)
         update_metadata_sig.connect(self.oe_update_metadata)
         scan_failed_sig.connect(self.update_failed_file)
         del_failed_file_sig.connect(self.ov_del_failed_file)
 
-    async def oe_start_scan(self, sender, **kw):
+    def clean_previous_scan(self):
         """
         清理前面的扫描结果
         """
+        logger.info("开始扫描，清理前面的扫描结果")
         self.app_state.success_file_metadata.clear()
         self.app_state.failed_file.clear()
 
@@ -52,6 +51,7 @@ class AppStateManager:
             logger.error("更新元数据失败,参数错误")
             return
         async with self._async_lock:
+            logger.debug(f"更新成功文件: {file_name}")
             self.app_state.success_file_metadata[file_name] = metadata
 
     async def update_failed_file(self, sender, **kw):
@@ -65,7 +65,7 @@ class AppStateManager:
             return
         async with self._async_lock:
             logger.debug(f"更新失败文件: {failed_file}")
-            self.app_state.failed_file.update({file:msg for file in failed_file})
+            self.app_state.failed_file[failed_file] = msg
 
     async def ov_del_failed_file(self, sender, **kw):
         """
@@ -76,4 +76,5 @@ class AppStateManager:
             logger.warning("删除失败文件失败,文件名为空")
             return
         async with self._async_lock:
+            logger.debug(f"从失败文件中删除: {file_name}")
             self.app_state.failed_file.pop(file_name, None)

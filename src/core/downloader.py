@@ -85,11 +85,13 @@ class Downloader:
                                 last_emit_time=last_emit_time
                             )
 
-            logger.info(f"\n[Sync] 下载完成: {save_path}")
+            logger.info(f"\n[Sync] {url} 下载完成: {save_path}")
             download_finished_sig.send('downloader',url=url, file_path=save_path, sucessed=True)
+            return save_path
         except Exception as e:
-            logger.error(f"\n[Sync] 下载失败: {save_path}，错误信息: {e}")
+            logger.error(f"\n[Sync] {url} -> {save_path} 下载失败, 错误信息: {e}")
             download_finished_sig.send('downloader',url=url, file_path=save_path, sucessed=False, msg=e)
+            return None
 
     async def download_async(self, url: str, save_path: str, chunk_size: int = 1024 * 64):
         """
@@ -121,6 +123,8 @@ class Downloader:
                             )
             logger.info(f"\n[Async] {url} 下载完成: {save_path}")
             await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=True)
+            return save_path
         except Exception as e:
-            logger.error(f"\n[Async] {url} 下载失败: {save_path}，错误信息: {e}")
+            logger.error(f"\n[Async] {url} -> {save_path} 下载失败，错误信息: {e}")
             await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=False, msg=e)
+            return None

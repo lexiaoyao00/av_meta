@@ -22,7 +22,7 @@ class BaseSettings(BaseModel):
     @model_validator(mode="after")
     def _model_validate(self):
         if self.output_dir is None:
-            self.output_dir = str(PRO_PATH / "output")
+            self.output_dir = "output"
         if self.log_dir is None:
             self.log_dir = str(PRO_PATH / "log")
         return self

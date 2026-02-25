@@ -1,15 +1,13 @@
-import re
+from string import Template
+from pydantic import BaseModel
 
-def normalize(text:str) -> str:
-    """替换所有常见的字符"""
-    result = text.replace("_", "-")
-    result = re.sub(r'cd\d+|CD\d+', '', result)
-    return result
+class User(BaseModel):
+    name: str = '大CC'
+    message: str = 'http://blog.me115.com'
+    age : int = 18
 
-def main():
-    string = 'CLUB-014-cd3'
-    res = normalize(string)
-    print(res)
+tempTemplate = Template("Hello $name ,your website is $message")
 
-if __name__ == '__main__':
-    main()
+user = User()
+string = tempTemplate.substitute(user.model_dump())
+print(string)

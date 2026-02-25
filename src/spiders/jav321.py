@@ -15,39 +15,38 @@ import re
 
 
 
-jav321_cookies = {
-    'UGVyc2lzdFN0b3JhZ2U': '%7B%7D',
-    '_ga': 'GA1.2.1119708300.1768562730',
-    '__PPU_puid': '7515763464587527403',
-    'is_loyal': '1',
-    '_gid': 'GA1.2.1546455009.1771993760',
-    '_gat': '1',
-    '_ga_EHB905C35N': 'GS2.2.s1771993760$o7$g1$t1771993933$j34$l0$h0',
-}
-
-jav321_headers = {
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-    'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,en-US;q=0.6',
-    'cache-control': 'max-age=0',
-    'content-type': 'application/x-www-form-urlencoded',
-    'origin': 'https://www.jav321.com',
-    'priority': 'u=0, i',
-    'referer': 'https://www.jav321.com/search',
-    'sec-ch-ua': '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'document',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-user': '?1',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
-}
-
 class Jav321Spider(AsyncBaseCrawler):
     def __init__(self):
-        self.base_url = URL('https://www.jav321.com')
         super().__init__()
+        self.base_url = URL('https://www.jav321.com')
+        self.cookies = {
+            'UGVyc2lzdFN0b3JhZ2U': '%7B%7D',
+            '_ga': 'GA1.2.1119708300.1768562730',
+            '__PPU_puid': '7515763464587527403',
+            'is_loyal': '1',
+            '_gid': 'GA1.2.1546455009.1771993760',
+            '_gat': '1',
+            '_ga_EHB905C35N': 'GS2.2.s1771993760$o7$g1$t1771993933$j34$l0$h0',
+        }
+
+        self.headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,en-US;q=0.6',
+            'cache-control': 'max-age=0',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://www.jav321.com',
+            'priority': 'u=0, i',
+            'referer': 'https://www.jav321.com/search',
+            'sec-ch-ua': '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+        }
 
 
     def _parse(self,url:str, r:Response):
@@ -59,6 +58,7 @@ class Jav321Spider(AsyncBaseCrawler):
         if not title:
             logger.error('无法获取标题')
             return None
+        title = title.strip()
 
         # --- 信息拆分 ---
         info_div = info_sel.css('div.col-md-9').get()
@@ -143,12 +143,15 @@ class Jav321Spider(AsyncBaseCrawler):
 
 
     async def search(self, num_code:str):
+        # 直接访问会加载不出来封面
+        # num_code_r =  num_code.replace('-', '00')
+        # search_url = self.base_url / 'video' / num_code_r
         search_url = self.base_url / 'search'
         data = {
             'sn': num_code
         }
         search_url = search_url.with_query(data)
-        response = await self.post(str(search_url), headers = jav321_headers, cookies = jav321_cookies, data = data)
+        response = await self.post(str(search_url), headers = self.headers, cookies = self.headers, data=data)
         if response is None:
             logger.error(f'jav321 搜索 {num_code} 失败')
             return None

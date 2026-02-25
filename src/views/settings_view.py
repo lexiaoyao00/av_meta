@@ -6,6 +6,11 @@ from config import settings
 @ft.control
 class DirContainer(ft.Container):
 
+    def init(self):
+        self._settings_name_map = {
+            '输出目录' : 'output_dir',
+        }
+
     def build(self):
         self.content = ft.Column(
             expand=True,

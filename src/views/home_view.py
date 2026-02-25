@@ -1,7 +1,7 @@
 import flet as ft
 from config import settings
 from widgets import Error
-from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig,scrape_finished_sig
+from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig
 from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 @ft.control
 class SearchRow(ft.Row):
