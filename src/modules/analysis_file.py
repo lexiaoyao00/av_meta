@@ -15,7 +15,10 @@ class AnalysisFile:
 
     # 1. 先替换所有下划线为短横
     def normalize(self,text:str) -> str:
-        return text.replace("_", "-")
+        """替换所有常见的字符"""
+        result = text.replace("_", "-")
+        result = re.sub(r'cd\d+|CD\d+', '', result)
+        return result
 
 
     def get_video_path_list(self) -> list[Path]:

@@ -11,12 +11,20 @@ class BaseSettings(BaseModel):
     # 目录管理
     select_dir : str = None # 选择目录, 待搜刮文件资源的存放目录
     output_dir : str = None # 输出目录, 默认None为资源目录下的 output 文件夹
+    log_dir : str = None # 日志目录, 默认None为资源目录下的 log 文件夹
+
+
+    # 选项管理
+    download_imgs : bool = True # 是否下载图片
+    move_src_file : bool = False # 是否移动源文件到输出目录
 
     # ========== 数据验证 ==========
     @model_validator(mode="after")
     def _model_validate(self):
         if self.output_dir is None:
-            self.output_dir = "output"
+            self.output_dir = str(PRO_PATH / "output")
+        if self.log_dir is None:
+            self.log_dir = str(PRO_PATH / "log")
         return self
 
 class Settings(BaseSettings):

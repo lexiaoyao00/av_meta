@@ -29,6 +29,7 @@ class DirBrowser(ft.Row):
     async def _on_click(self,e:ft.Event[ft.IconButton]):
         dir = await ft.FilePicker().get_directory_path()
         # print(dir)
-        self.text_val = dir
-        self.ref_tf.current.value = self.text_val
-        self.ref_tf.current.update()
+        if dir:
+            self.text_val = dir
+            self.ref_tf.current.value = self.text_val
+            self.ref_tf.current.update()

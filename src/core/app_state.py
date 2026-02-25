@@ -58,13 +58,14 @@ class AppStateManager:
         """
         更新失败文件
         """
-        failed_files:List[str] = kw.get("failed_files")
+        failed_file:List[str] = kw.get("failed_file")
         msg:str = kw.get("msg","未知原因")
-        if not failed_files:
-            logger.warning("更新失败文件失败,文件列表为空")
+        if not failed_file:
+            logger.warning("更新失败文件失败,传入文件为空")
             return
         async with self._async_lock:
-            self.app_state.failed_file.update({file:msg for file in failed_files})
+            logger.debug(f"更新失败文件: {failed_file}")
+            self.app_state.failed_file.update({file:msg for file in failed_file})
 
     async def ov_del_failed_file(self, sender, **kw):
         """

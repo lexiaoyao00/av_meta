@@ -53,6 +53,7 @@ class Downloader:
                 total=total,
                 percentage=round(current / total * 100, 2) if total > 0 else 0
             )
+            # logger.debug(f"[Progress] {file_path} {current}/{total} ({round(current / total * 100, 2)}%)")
             return now
         return last_emit_time
 
@@ -62,9 +63,9 @@ class Downloader:
         """
         try:
             last_emit_time = 0
-            logger.debug(f"[Sync] 开始下载: {url}")
             with Session(impersonate=self.impersonate) as s:
                 # stream=True 是大文件下载的关键
+                logger.debug(f"[Sync] 开始下载: {url}")
                 r = s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
                 r.raise_for_status()
                 total_size = self._get_file_size(r)
@@ -95,10 +96,10 @@ class Downloader:
         异步下载方法
         """
         try:
-            logger.debug(f"[Async] 开始下载: {url}")
             async with self.semaphore:
                 last_emit_time = 0
                 async with AsyncSession(impersonate=self.impersonate) as s:
+                    logger.debug(f"[Async] 开始下载: {url}")
                     # 异步模式同样需要 stream=True
                     r = await s.get(url, stream=True, timeout=self.timeout, headers=self.headers,cookies=self.cookies)
                     r.raise_for_status()
@@ -118,8 +119,8 @@ class Downloader:
                                 total=total_size,
                                 last_emit_time=last_emit_time
                             )
-            logger.info(f"\n[Async] 下载完成: {save_path}")
+            logger.info(f"\n[Async] {url} 下载完成: {save_path}")
             await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=True)
         except Exception as e:
-            logger.error(f"\n[Async] 下载失败: {save_path}，错误信息: {e}")
+            logger.error(f"\n[Async] {url} 下载失败: {save_path}，错误信息: {e}")
             await download_finished_sig.send_async('downloader',url=url, file_path=save_path, sucessed=False, msg=e)

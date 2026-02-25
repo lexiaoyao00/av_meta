@@ -11,8 +11,7 @@ class DirContainer(ft.Container):
             expand=True,
             scroll=ft.ScrollMode.AUTO,
             controls=[
-                ft.Button(content="保存"),
-                DirBrowser(val=settings.output_dir, label="输出目录")
+                DirBrowser(val=settings.output_dir, label="输出目录"),
             ]
         )
 
@@ -21,9 +20,19 @@ class DirContainer(ft.Container):
 
 @ft.control
 class RuleContainer(ft.Container):
+    def init(self):
+        self.ref_download_imgs = ft.Ref[ft.Checkbox]()
+        self.ref_move_src_file = ft.Ref[ft.Checkbox]()
 
     def build(self):
-        self.content = ft.Text("规则组件")
+        self.content = ft.Column(
+            expand=True,
+            scroll=ft.ScrollMode.AUTO,
+            controls=[
+                ft.Checkbox(label="下载图像", value=settings.download_imgs,ref=self.ref_download_imgs),
+                ft.Checkbox(label="移动源文件到输出目录", value=settings.move_src_file,ref=self.ref_move_src_file),
+            ]
+        )
 
 @ft.control
 class SettingsTabBar(ft.TabBar):

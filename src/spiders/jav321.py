@@ -15,7 +15,7 @@ import re
 
 
 
-jav123_cookies = {
+jav321_cookies = {
     'UGVyc2lzdFN0b3JhZ2U': '%7B%7D',
     '_ga': 'GA1.2.1119708300.1768562730',
     '__PPU_puid': '7515763464587527403',
@@ -25,7 +25,7 @@ jav123_cookies = {
     '_ga_EHB905C35N': 'GS2.2.s1771993760$o7$g1$t1771993933$j34$l0$h0',
 }
 
-jav123_headers = {
+jav321_headers = {
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
     'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7,en-US;q=0.6',
     'cache-control': 'max-age=0',
@@ -44,7 +44,7 @@ jav123_headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
 }
 
-class Jav123Spider(AsyncBaseCrawler):
+class Jav321Spider(AsyncBaseCrawler):
     def __init__(self):
         self.base_url = URL('https://www.jav321.com')
         super().__init__()
@@ -117,7 +117,9 @@ class Jav123Spider(AsyncBaseCrawler):
         # --- 评分 ---
 
         rating = panel_info_lines.get('平均評価')
-        movie_info_meta.rating = rating
+        if rating:
+            rating = float(rating)
+            movie_info_meta.rating = rating
 
         # --- 标签 ---
 
@@ -145,14 +147,15 @@ class Jav123Spider(AsyncBaseCrawler):
         data = {
             'sn': num_code
         }
-        response = await self.post(str(search_url), headers = jav123_headers, cookies = jav123_cookies, data = data)
+        search_url = search_url.with_query(data)
+        response = await self.post(str(search_url), headers = jav321_headers, cookies = jav321_cookies, data = data)
         if response is None:
-            logger.error(f'jav123 搜索 {num_code} 失败')
+            logger.error(f'jav321 搜索 {num_code} 失败')
             return None
 
         movie_info_meta = self._parse(str(search_url),response)
         if movie_info_meta is None:
-            logger.error(f'jav123 解析 {num_code} 失败')
+            logger.error(f'jav321 解析 {num_code} 失败')
             return None
 
         return movie_info_meta

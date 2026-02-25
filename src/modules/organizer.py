@@ -96,8 +96,6 @@ class Organizer:
         imgs_meta.extrafanart = new_fanart
 
 
-
-
     def _save_to_nfo(self):
         """保存为nfo文件
         """
@@ -110,7 +108,12 @@ class Organizer:
     def organize(self):
         """整理文件并保存nfo文件
         """
-        # shutil.move(self.orgin_file, self.organized_file)
-        logger.debug(f'移动文件 {self.orgin_file} 到 {self.organized_file}')
-        self.download_imgs()
+        if settings.move_src_file:
+            logger.info(f'移动文件 {self.orgin_file} 到 {self.organized_file}')
+            shutil.move(self.orgin_file, self.organized_file)
+
+        if settings.download_imgs:
+            logger.info(f'开始下载 {self.orgin_file} 的图片')
+            self.download_imgs()
+
         self._save_to_nfo()

@@ -104,11 +104,8 @@ class JavBusSpider(AsyncBaseCrawler):
         bigImage = selector.css('a.bigImage::attr(href)').get().strip('/')
         thumb = str(self.base_url / bigImage)
         poster = thumb.replace('cover',poster_path).replace('_b','')
-        # print(f'poster = {poster}')
-        # print(f'thumb = {thumb}')
 
         extrafanart = selector.css('div#sample-waterfall a.sample-box::attr(href)').getall()
-        # print(f'fanarts = {fanarts}')
 
         movie_images = NfoMovieImageModel(poster=poster,thumb=thumb,extrafanart=extrafanart)
 
@@ -117,16 +114,12 @@ class JavBusSpider(AsyncBaseCrawler):
 
         genres.append(censored_or_unce)
 
-        # print(genres)
-
         move_tags = NfoMovieTagModel(genre=genres)
 
         # --- 演员 ---
         actors = move_info_sel.css('p > span.genre > a::text').getall()
 
-        # print(actors)
         actor_info : List[NfoActorModel] = [NfoActorModel(name=actor) for actor in actors]
-        # print(actor_info)
 
         movie_meta = NfoMovieModel(
             num_code=code,

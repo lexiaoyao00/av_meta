@@ -70,13 +70,12 @@ class NfoMovieModel(BaseModel):
 
 
     def save_to_nfo(self, save_path: Path|str, nfo_type:NFO_TYPE = 'movie'):
-        data = {nfo_type:self.model_dump(exclude_unset=True)}
+        data = {nfo_type:self.model_dump(exclude_none=True)}
         xml_str = xmltodict.unparse(data, pretty=True)
 
         path = Path(save_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, 'w', encoding='utf-8') as f:
-            # print(f'save to {str(path)}')
             f.write(xml_str)
 
     # 自动打平：将所有子模型的字段提取到顶层
@@ -94,7 +93,7 @@ class NfoMovieModel(BaseModel):
             # 3. 如果该字段是一个 Pydantic 模型，则打平它
             if isinstance(original_value, BaseModel):
                 # 递归调用该模型的 dump，确保深层嵌套也能处理
-                nested_dict = original_value.model_dump()
+                nested_dict = original_value.model_dump(exclude_none=True)
                 flattened.update(nested_dict)
             else:
                 # 否则保持原样

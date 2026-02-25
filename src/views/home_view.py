@@ -62,7 +62,7 @@ class MetaInfo(ft.Container):
                     expand=True,
                     controls=[
                         ft.TextField(label="番号",expand=1,ref=self.ref_code),
-                        ft.TextField(label="网站",expand=2,ref=self.ref_site),
+                        ft.TextField(label="网站",expand=2,ref=self.ref_site,read_only=True,on_click=self.launch_url),
                         ft.TextField(label='标题',expand=3,ref=self.ref_title),
                     ]
                 ),
@@ -112,6 +112,9 @@ class MetaInfo(ft.Container):
 
         self.update()
 
+    async def launch_url(self, e):
+        await ft.UrlLauncher().launch_url(self.ref_site.current.value)
+
 
 @ft.control
 class CoverView(ft.Container):
@@ -149,8 +152,6 @@ class CoverView(ft.Container):
 
         imgs = metadata.imgs_meta
         if imgs:
-            print(imgs.poster)
-            print(imgs.thumb)
             self.ref_cover.current.src = imgs.poster
             self.ref_thumb.current.src = imgs.thumb
 
