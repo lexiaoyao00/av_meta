@@ -6,6 +6,7 @@ from schemas.movie import (
     NfoMovieIntroductionModel,
     NfoMovieModel)
 from core.downloader import Downloader
+from core.app_state import AppStateManager
 from pathlib import Path
 from config import settings
 import shutil
@@ -14,6 +15,7 @@ from typing import List
 import asyncio
 from string import Template
 from pydantic import BaseModel
+from utils.signals import organize_finished_sig
 
 class AvDir(BaseModel):
     """视频保存的目录关键字"""
@@ -23,10 +25,14 @@ class AvDir(BaseModel):
 
 class Organizer:
     """整理文件并保存nfo文件"""
-    def __init__(self, moive_info : NfoMovieModel, file_path : str|Path):
+    def __init__(self, file_path : str|Path):
         """传入的 moive_info 是爬虫爬取到的元数据,修改后的元数据传入可能会报错"""
-        self.moive_info = moive_info
         self.orgin_file = Path(file_path)
+
+        self.moive_info = AppStateManager().app_state.success_file_metadata.get(self.orgin_file.name).model_copy(deep=True)
+        if self.moive_info is None:
+            logger.error(f'文件: {self.orgin_file} 没有元数据')
+            return
 
         self.init_dir()
 
@@ -45,7 +51,6 @@ class Organizer:
             num_code=self.moive_info.num_code,
             actor= actor_str
         )
-        print(f'当前标题: "{av_dir.title}"')
         av_dir_str = template.substitute(av_dir.model_dump())
         self.organized_file = Path(settings.select_dir) / settings.output_dir / av_dir_str / self.orgin_file.name
 
@@ -87,7 +92,7 @@ class Organizer:
         save_file = f'{av_code}-poster.{suffix}'
         save_path = organized_dir / save_file
         asyncio.create_task(downloader.download_async(imgs_meta.poster, save_path))
-        new_poster = save_path.stem
+        new_poster = save_path.name
         imgs_meta.poster = new_poster
 
     def _download_thumb(
@@ -101,7 +106,7 @@ class Organizer:
         save_file = f'{av_code}-thumb.{suffix}'
         save_path = organized_dir / save_file
         asyncio.create_task(downloader.download_async(imgs_meta.thumb, save_path))
-        new_thumb = save_path.stem
+        new_thumb = save_path.name
         imgs_meta.thumb = new_thumb
 
     def _download_fanart(
@@ -119,7 +124,7 @@ class Organizer:
             save_path = organized_dir / 'extrafanart' / save_file
             asyncio.create_task(downloader.download_async(fanart_img, save_path))
             counter += 1
-            new_fanart.append(save_path.stem)
+            new_fanart.append(save_path.name)
 
         imgs_meta.extrafanart = new_fanart
 
@@ -145,3 +150,6 @@ class Organizer:
             self.download_imgs()
 
         self._save_to_nfo()
+
+        file_name = self.organized_file.name
+        asyncio.create_task(organize_finished_sig.send_async('organizer', file_name = file_name))

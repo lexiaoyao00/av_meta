@@ -15,7 +15,7 @@ class AppState(BaseModel):
     """
     用来保存当前搜刮状态，如成功的元数据
     """
-    success_file_metadata: Dict[str, NfoMovieModel] = {} # 保存成功获取的元数据, 文件 -> 元数据
+    success_file_metadata: Dict[str, NfoMovieModel] = {} # 保存成功获取的元数据, 文件名 -> 元数据
     failed_file: Dict[str,str] = {} # 保存获取元数据失败的文件名和失败原因
 
 @singleton

@@ -80,7 +80,7 @@ class MetaInfo(ft.Container):
             ]
         )
 
-    async def update_meta(self, sender, **kw):
+    async def oe_update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return
@@ -145,7 +145,9 @@ class CoverView(ft.Container):
             ]
         )
 
-    async def update_meta(self, sender, **kw):
+    async def oe_update_meta(self, sender, **kw):
+        self.ref_cover.current.src = 'src/assets/default_cover.jpg'
+        self.ref_thumb.current.src = 'src/assets/default_tumb.jpg'
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return
@@ -183,8 +185,8 @@ class HomeView(ft.Container):
             ]
         )
 
-        show_matadata_sig.connect(self.meta_info.update_meta)
-        show_matadata_sig.connect(self.cover_view.update_meta)
+        show_matadata_sig.connect(self.meta_info.oe_update_meta)
+        show_matadata_sig.connect(self.cover_view.oe_update_meta)
 
     def show_meta(self):
         ...

@@ -21,4 +21,5 @@ analysis_file_sig = be_sig_namespace.signal('analysis_file')    # 解析文件
 scrape_finished_sig = be_sig_namespace.signal('scrape_finished')    # 爬虫完成
 del_failed_file_sig = be_sig_namespace.signal('del_failed')    # 删除失败文件，第二次搜刮成功后删除原先失败的文件
 
+organize_finished_sig = be_sig_namespace.signal('organize_finished')    # 整理完成,可以进行展示了
 show_matadata_sig = be_sig_namespace.signal('show_metadata')    # 展示元数据

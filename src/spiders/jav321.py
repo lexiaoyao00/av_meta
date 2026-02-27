@@ -88,7 +88,9 @@ class Jav321Spider(AsyncBaseCrawler):
         if not num_code:
             logger.error('无法获取番号')
             return None
-        movie_info_meta = NfoMovieModel(num_code=num_code, website=url, title=title)
+
+        series = panel_info_lines.get('シリーズ')
+        movie_info_meta = NfoMovieModel(num_code=num_code, website=url, title=title,set=series)
 
         releasedate  = panel_info_lines.get('配信開始日')    # 上映日期
 

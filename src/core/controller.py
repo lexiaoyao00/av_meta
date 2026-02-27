@@ -4,6 +4,7 @@ from utils.signals import (
     update_metadata_sig,
     show_matadata_sig,
     scrape_finished_sig,
+    organize_finished_sig,
     )
 from modules.analysis_file import AnalysisFile
 from loguru import logger
@@ -24,6 +25,7 @@ class Controller:
         self.app_state_manager = AppStateManager()
         start_scan_sig.connect(self.oe_start_scan)
         scrape_finished_sig.connect(self.oe_scrape_finished)
+        organize_finished_sig.connect(self.oe_organize_finished)
         self._is_running = False
 
 
@@ -76,17 +78,29 @@ class Controller:
     async def oe_scrape_finished(self, sender, **kw):
         if not self.app_state_manager.app_state.success_file_metadata:
             logger.error('没有成功爬取的文件')
-            print(self.app_state_manager.app_state.success_file_metadata)
             return
         app_state = self.app_state_manager.app_state
         failed_files = list(app_state.failed_file.keys())
         logger.info(f'失败的文件有：{failed_files}')
         success_file_metadata = app_state.success_file_metadata
-        first_item = next(iter(app_state.success_file_metadata.items()))
-
-        asyncio.create_task(show_matadata_sig.send_async('controller',metadata=first_item[1]))
 
         self._is_running = False
-        for item in success_file_metadata.items():
-            organizer = Organizer(item[1], item[0])
+        for file_name in list(success_file_metadata.keys()):
+            organizer = Organizer(file_name)
             organizer.organize()
+
+    async def oe_organize_finished(self, sender, **kw):
+        file_name = kw.get('file_name')
+        if not file_name:
+            logger.error('oe_organize_finished 没有获取到文件名')
+            return
+
+        meta_data = self.app_state_manager.app_state.success_file_metadata.get(file_name)
+        if not meta_data:
+            logger.error(f'oe_organize_finished 没有获取到文件 {file_name} 的元数据')
+            return
+
+        # first_item = next(iter(self.app_state_manager.app_state.success_file_metadata.items()))
+
+
+        asyncio.create_task(show_matadata_sig.send_async('controller',metadata=meta_data))
