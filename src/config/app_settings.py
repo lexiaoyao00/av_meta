@@ -18,6 +18,9 @@ class BaseSettings(BaseModel):
     download_imgs : bool = True # 是否下载图片
     move_src_file : bool = False # 是否移动源文件到输出目录
 
+    # 格式管理
+    output_dir_name : str = '{actor}/{num_code}-{title}-{releasedate}' # 输出文件目录格式
+
     # ========== 数据验证 ==========
     @model_validator(mode="after")
     def _model_validate(self):

@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from utils.files import judge_file_type,FileType
 from typing import Dict,List,Tuple
-from utils.signals import scan_failed_sig
+from utils.signals import scan_failed_sig,analysis_file_sig
 from loguru import logger
 import asyncio
 
@@ -23,12 +23,15 @@ class AnalysisFile:
 
     def get_video_path_list(self) -> list[Path]:
         """获取当前目录下所有视频文件路径"""
-        file_list = []
+        file_list : List[Path] = []
         for file in self.current_dir.iterdir():
             if file.is_file() and judge_file_type(file) == FileType.VIDEO:
                 file_list.append(file)
 
         logger.info(f'解析当前目录 {str(self.current_dir)} 下共有 {len(file_list)} 个视频文件')
+        # print(file_list)
+        files_path = {file.name:file for file in file_list}
+        analysis_file_sig.send('analysis_file', files_path=files_path)
         return file_list
 
     def _extract_av_code(self, name : str):

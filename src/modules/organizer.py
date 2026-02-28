@@ -25,11 +25,11 @@ class AvDir(BaseModel):
 
 class Organizer:
     """整理文件并保存nfo文件"""
-    def __init__(self, file_path : str|Path):
-        """传入的 moive_info 是爬虫爬取到的元数据,修改后的元数据传入可能会报错"""
-        self.orgin_file = Path(file_path)
+    def __init__(self, file_name : str):
+        """根据文件名从app_state中获取信息"""
+        self.orgin_file = file_name
 
-        self.moive_info = AppStateManager().app_state.success_file_metadata.get(self.orgin_file.name).model_copy(deep=True)
+        self.moive_info = AppStateManager().app_state.success_file_metadata.get(self.orgin_file).model_copy(deep=True)
         if self.moive_info is None:
             logger.error(f'文件: {self.orgin_file} 没有元数据')
             return
@@ -39,7 +39,7 @@ class Organizer:
     def init_dir(self):
         """初始化目录"""
         # TODO:整理后的文件路径根据配置来
-        str_tmp = '{actor}/{num_code}-{title}-{releasedate}'
+        str_tmp = settings.output_dir_name
 
         actor_str = 'Unknown'
         if self.moive_info.actors :
@@ -47,13 +47,16 @@ class Organizer:
 
         actor_str.strip()
         av_dir = AvDir(
-            title=self.moive_info.title or self.orgin_file.stem,
+            title=self.moive_info.title,
             num_code=self.moive_info.num_code,
             actor= actor_str,
             releasedate = self.moive_info.releasedate or ''
         )
         av_dir_str = str_tmp.format(**av_dir.model_dump())
-        self.organized_file = Path(settings.select_dir) / settings.output_dir / av_dir_str / self.orgin_file.name
+        if (out_dir := Path(settings.output_dir)).is_absolute():
+            self.organized_file = out_dir / av_dir_str / self.orgin_file
+        else:
+            self.organized_file = Path(settings.select_dir) / settings.output_dir / av_dir_str / self.orgin_file
 
         self.organized_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -143,8 +146,14 @@ class Organizer:
         """整理文件并保存nfo文件
         """
         if settings.move_src_file:
-            logger.info(f'移动文件 {self.orgin_file} 到 {self.organized_file}')
-            shutil.move(self.orgin_file, self.organized_file)
+            print('整理时的文件路径状态:', AppStateManager().app_state.files_path)
+            file_path = AppStateManager().app_state.files_path.get(self.orgin_file)
+            if file_path is None:
+                logger.error(f'文件: {self.orgin_file} 没有获取到实际路径')
+                return
+            logger.info(f'移动文件 {str(file_path)} 到 {self.organized_file}')
+            self.organized_file.parent.mkdir(parents=True, exist_ok=True)
+            # shutil.move(self.orgin_file, self.organized_file)
 
         if settings.download_imgs:
             logger.info(f'开始下载 {self.orgin_file} 的图片')

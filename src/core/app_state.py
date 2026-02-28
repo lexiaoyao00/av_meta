@@ -7,14 +7,17 @@ from utils.signals import (
     update_metadata_sig,
     scan_failed_sig,
     del_failed_file_sig,
+    analysis_file_sig,
     )
 from loguru import logger
 import asyncio
+from pathlib import Path
 
 class AppState(BaseModel):
     """
     用来保存当前搜刮状态，如成功的元数据
     """
+    files_path : Dict[str,Path] = {} # 保存文件名 -> 文件路径, 方便移动文件, 在解析文件时可以直接赋值
     success_file_metadata: Dict[str, NfoMovieModel] = {} # 保存成功获取的元数据, 文件名 -> 元数据
     failed_file: Dict[str,str] = {} # 保存获取元数据失败的文件名和失败原因
 
@@ -31,6 +34,17 @@ class AppStateManager:
         update_metadata_sig.connect(self.oe_update_metadata)
         scan_failed_sig.connect(self.update_failed_file)
         del_failed_file_sig.connect(self.ov_del_failed_file)
+        analysis_file_sig.connect(self.oe_set_files_path)
+
+    def oe_set_files_path(self, sender, **kw):
+        """
+        设置文件路径
+        """
+        files_path : Dict[str,str] = kw.get("files_path")
+        if files_path is None:
+            logger.error("设置文件路径失败,参数错误")
+            return
+        self.app_state.files_path = files_path
 
     def clean_previous_scan(self):
         """

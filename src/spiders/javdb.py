@@ -112,7 +112,7 @@ class JavDBSpider(AsyncBaseCrawler):
         if title is None:
             title = sel.css('strong.current-title::text').get()
             if title is None:
-                logger.error('javdb 未找到识别码')
+                logger.error('javdb 未找到标题')
                 return None
 
         movie.title = title

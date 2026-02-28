@@ -35,10 +35,10 @@ def main(page: ft.Page):
         content = NAV_ROUTES.get(idx)
         if not content:
             raise Exception("未知的导航索引")
-        if idx == 1:
-            page.floating_action_button.visible = True
-        else:
-            page.floating_action_button.visible = False
+        # if idx == 1:
+        #     page.floating_action_button.visible = True
+        # else:
+        #     page.floating_action_button.visible = False
         body_content.content = content
         body_content.update()
 
@@ -54,7 +54,7 @@ def main(page: ft.Page):
 
     page.appbar = AppBar()
     page.drawer = NavDrawer()
-    page.floating_action_button = ft.FloatingActionButton('保存',visible=False)
+    # page.floating_action_button = ft.FloatingActionButton('保存',visible=False)
     page.add(body_content)
 
 

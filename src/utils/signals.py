@@ -11,6 +11,8 @@ ui_sig_namespace = Namespace()     # 前端信号
 nav_sig = ui_sig_namespace.signal('nav')
 start_scan_sig = ui_sig_namespace.signal('start_scan')
 
+dir_settings_submit_sig = ui_sig_namespace.signal('dir_settings_changed')
+
 be_sig_namespace = Namespace()      # 后端信号
 
 download_progress_sig = be_sig_namespace.signal('download_progress')
