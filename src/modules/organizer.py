@@ -13,7 +13,6 @@ import shutil
 from loguru import logger
 from typing import List
 import asyncio
-from string import Template
 from pydantic import BaseModel
 from utils.signals import organize_finished_sig
 
@@ -22,6 +21,7 @@ class AvDir(BaseModel):
     title : str
     num_code : str
     actor : str = 'Unknown'
+    releasedate : str = ''
 
 class Organizer:
     """整理文件并保存nfo文件"""
@@ -39,7 +39,7 @@ class Organizer:
     def init_dir(self):
         """初始化目录"""
         # TODO:整理后的文件路径根据配置来
-        template = Template('$actor/$title')
+        str_tmp = '{actor}/{num_code}-{title}-{releasedate}'
 
         actor_str = 'Unknown'
         if self.moive_info.actors :
@@ -47,11 +47,12 @@ class Organizer:
 
         actor_str.strip()
         av_dir = AvDir(
-            title=self.moive_info.title,
+            title=self.moive_info.title or self.orgin_file.stem,
             num_code=self.moive_info.num_code,
-            actor= actor_str
+            actor= actor_str,
+            releasedate = self.moive_info.releasedate or ''
         )
-        av_dir_str = template.substitute(av_dir.model_dump())
+        av_dir_str = str_tmp.format(**av_dir.model_dump())
         self.organized_file = Path(settings.select_dir) / settings.output_dir / av_dir_str / self.orgin_file.name
 
         self.organized_file.parent.mkdir(parents=True, exist_ok=True)

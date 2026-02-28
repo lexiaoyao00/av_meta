@@ -5,6 +5,7 @@ from schemas.movie import (
     NfoMovieTagModel,
     NfoMovieProductionModel,
     NfoMovieIntroductionModel,
+    NfoMovieSetModel,
     NfoMovieModel)
 from parsel import Selector
 from curl_cffi import Response
@@ -94,6 +95,8 @@ class JavBusSpider(AsyncBaseCrawler):
 
         releasedate = info_dict.get('發行日期')
         series = info_dict.get('系列')      # 合集 set
+        if series:
+            series = NfoMovieSetModel(name=series)
 
         director = info_dict.get('導演')
         studio = info_dict.get('製作商')

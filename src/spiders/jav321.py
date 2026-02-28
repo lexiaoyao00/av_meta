@@ -5,6 +5,7 @@ from schemas.movie import (
     NfoMovieTagModel,
     NfoMovieProductionModel,
     NfoMovieIntroductionModel,
+    NfoMovieSetModel,
     NfoMovieModel)
 from parsel import Selector
 from curl_cffi import Response
@@ -90,7 +91,7 @@ class Jav321Spider(AsyncBaseCrawler):
             return None
 
         series = panel_info_lines.get('シリーズ')
-        movie_info_meta = NfoMovieModel(num_code=num_code, website=url, title=title,set=series)
+        movie_info_meta = NfoMovieModel(num_code=num_code, website=url, title=title,set=NfoMovieSetModel(name=series))
 
         releasedate  = panel_info_lines.get('配信開始日')    # 上映日期
 

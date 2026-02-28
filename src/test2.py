@@ -1,4 +1,3 @@
-from string import Template
 from pydantic import BaseModel
 
 class User(BaseModel):
@@ -6,8 +5,11 @@ class User(BaseModel):
     message: str = 'http://blog.me115.com'
     age : int = 18
 
-tempTemplate = Template("Hello $name ,your website is $message")
+
+str_tmp = "Hello {name} ,your website is {message}"
 
 user = User()
-string = tempTemplate.substitute(user.model_dump())
+dict_info = user.model_dump()
+print(dict_info)
+string = str_tmp.format(**dict_info)
 print(string)

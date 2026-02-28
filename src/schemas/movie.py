@@ -41,6 +41,10 @@ class NfoMovieIntroductionModel(BaseModel):
     outline : Optional[str] = None  # 概要
     tagline : Optional[str] = None  # 宣传语
 
+class NfoMovieSetModel(BaseModel):
+    """emby 的合集元数据模型"""
+    name : str
+
 class NfoMovieModel(BaseModel):
     """emby 的元数据模型"""
     num_code : str          # 番号
@@ -53,7 +57,7 @@ class NfoMovieModel(BaseModel):
     premiered : Optional[str] = None  # 首映日期
     releasedate : Optional[str] = None  # 上映日期
     # runtime : int = None  # 时长（分钟） 由emby自己解析即可
-    set : Optional[str] = None  # 合集(系列)
+    set : Optional[NfoMovieSetModel] = None  # 合集(系列)
 
     rating : Optional[float] = None   # 社区评分
     criticrating : Optional[float] = None  # 影评人评分
