@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict,Optional
 from schemas.movie import  NfoMovieModel
 from utils.decorator import singleton
 from utils.signals import (
@@ -20,6 +20,8 @@ class AppState(BaseModel):
     files_path : Dict[str,Path] = {} # 保存文件名 -> 文件路径, 方便移动文件, 在解析文件时可以直接赋值
     success_file_metadata: Dict[str, NfoMovieModel] = {} # 保存成功获取的元数据, 文件名 -> 元数据
     failed_file: Dict[str,str] = {} # 保存获取元数据失败的文件名和失败原因
+
+    current_metadata: Optional[NfoMovieModel] = None # 当前正在展示的元数据
 
 @singleton
 class AppStateManager:
@@ -45,6 +47,13 @@ class AppStateManager:
             logger.error("设置文件路径失败,参数错误")
             return
         self.app_state.files_path = files_path
+
+
+    def get_current_metadata(self):
+        """
+        获取当前元数据
+        """
+        return self.app_state.current_metadata
 
     def clean_previous_scan(self):
         """

@@ -1,8 +1,10 @@
 import flet as ft
 from config import settings
-from widgets import Error
-from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig
+from widgets import Error,Prompt
+from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig,scan_failed_sig,organize_finished_sig
 from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
+from core import state_manager
+import asyncio
 @ft.control
 class SearchRow(ft.Row):
     expand : bool = True
@@ -54,7 +56,6 @@ class MetaInfo(ft.Container):
         self.ref_maker = ft.Ref[ft.TextField]()
         self.ref_publisher = ft.Ref[ft.TextField]()
 
-    def build(self):
         self.content = ft.Column(
             expand=True,
             controls=[
@@ -80,10 +81,17 @@ class MetaInfo(ft.Container):
             ]
         )
 
+        show_matadata_sig.connect(self.oe_update_meta)
+
     async def oe_update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return
+
+        await self.show_metadata(metadata)
+
+
+    async def show_metadata(self, metadata : NfoMovieModel):
         self.ref_code.current.value = metadata.num_code
         self.ref_site.current.value = metadata.website
         self.ref_title.current.value = metadata.title
@@ -124,9 +132,6 @@ class CoverView(ft.Container):
         self.ref_cover = ft.Ref[ft.Image]()
         self.ref_thumb = ft.Ref[ft.Image]()
 
-
-
-    def build(self):
         self.content = ft.Row(
             expand=True,
             controls=[
@@ -145,12 +150,17 @@ class CoverView(ft.Container):
             ]
         )
 
+        show_matadata_sig.connect(self.oe_update_meta)
+
+
     async def oe_update_meta(self, sender, **kw):
-        self.ref_cover.current.src = 'src/assets/default_cover.jpg'
-        self.ref_thumb.current.src = 'src/assets/default_tumb.jpg'
         metadata : NfoMovieModel = kw.get('metadata')
         if not metadata:
             return
+
+        await self.show_metadata_imgs(metadata)
+
+    async def show_metadata_imgs(self, metadata : NfoMovieModel):
 
         imgs = metadata.imgs_meta
         if imgs:
@@ -162,31 +172,120 @@ class CoverView(ft.Container):
 
 
 @ft.control
-class HomeView(ft.Container):
+class MainBody(ft.Container):
     expand : bool = True
 
     def init(self):
-        self.search_row = SearchRow()
-        self.meta_info = MetaInfo()
-        self.cover_view = CoverView()
 
-
-
-
-    def build(self):
-        self.page.appbar.title = "Home"
         self.content = ft.Column(
             expand=True,
             scroll= ft.ScrollMode.AUTO,
             controls=[
-                self.search_row,
-                self.meta_info,
-                self.cover_view,
+                SearchRow(),
+                MetaInfo(),
+                CoverView(),
             ]
         )
 
-        show_matadata_sig.connect(self.meta_info.oe_update_meta)
-        show_matadata_sig.connect(self.cover_view.oe_update_meta)
 
-    def show_meta(self):
-        ...
+@ft.control
+class FileTile(ft.ListTile):
+    def __init__(self, file_name : str, success : bool = True):
+        self.file_name = file_name
+        self.success = success
+        super().__init__(title=self.file_name)
+
+    def init(self):
+        if self.success:
+            self.on_click = self.show_meta
+        else:
+            self.on_click = self.show_msg
+
+
+    def show_meta(self, e : ft.Event[ft.ListTile]):
+        # print(e)
+        # print(e.control.title)
+        # file_name : str = e.control.title
+        meta_info = state_manager.app_state.success_file_metadata.get(self.file_name)
+        if meta_info:
+            asyncio.create_task(show_matadata_sig.send_async('file_tile',metadata=meta_info))
+
+
+    def show_msg(self, e : ft.Event[ft.ListTile]):
+        # print(e)
+        # file_name : str = e.control.title
+        msg = state_manager.app_state.failed_file.get(self.file_name)
+        if msg:
+            self.page.show_dialog(Prompt(msg))
+
+@ft.control
+class SideInfoArea(ft.Container):
+    width : int = 300
+    vertical_alignment : ft.CrossAxisAlignment = ft.CrossAxisAlignment.START
+
+    def init(self):
+        self.ref_success_et = ft.Ref[ft.ExpansionTile]()
+        self.ref_fail_et = ft.Ref[ft.ExpansionTile]()
+
+        self.content = ft.Column(
+            expand=True,
+            controls=[
+                ft.Text("侧边栏"),
+                ft.ExpansionTile(
+                    title='成功',
+                    expand=True,
+                    ref=self.ref_success_et,
+                    controls=[],
+                    expanded=True
+                ),
+                ft.ExpansionTile(
+                    title='失败',
+                    expand=True,
+                    ref=self.ref_fail_et,
+                    controls=[]
+                )
+            ]
+        )
+
+        organize_finished_sig.connect(self.oe_organize_finished)
+        scan_failed_sig.connect(self.oe_scan_failed)
+
+    def append_success(self, file_name : str):
+        self.ref_success_et.current.controls.append(FileTile(file_name=file_name))
+        self.ref_success_et.current.update()
+
+    def append_fail(self, file_name : str):
+        self.ref_fail_et.current.controls.append(FileTile(file_name=file_name,success=False))
+        self.ref_fail_et.current.update()
+
+    async def oe_scan_failed(self, sender, **kw):
+        file_name : str = kw.get('failed_file')
+        if file_name:
+            self.append_fail(file_name)
+
+    async def oe_organize_finished(self, sender, **kw):
+        file_name : str = kw.get('file_name')
+        if file_name:
+            self.append_success(file_name)
+
+@ft.control
+class HomeView(ft.Container):
+    expand : bool = True
+
+    def init(self):
+        self.content = ft.Row(
+            expand=True,
+            vertical_alignment  = ft.CrossAxisAlignment.START,
+            controls=[
+                MainBody(),
+                SideInfoArea()
+            ]
+        )
+
+    def build(self):
+        self.page.appbar.title = "Home"
+
+
+
+
+

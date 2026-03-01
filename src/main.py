@@ -8,9 +8,10 @@ from core.controller import Controller
 from loguru import logger
 from config import settings
 from pathlib import Path
+from typing import Dict
 
 
-NAV_ROUTES = {
+NAV_ROUTES : Dict[int, ft.Container] = {
     0: HomeView(),
     1: SettingsView(),
 }
@@ -28,7 +29,7 @@ def main(page: ft.Page):
     controller = Controller()
     page.scroll = ft.ScrollMode.AUTO
 
-    body_content = HomeView()
+    body_content = ft.Container()
 
     def oe_nav_by_index(sender,**kw):
         idx = kw.get('index')
@@ -40,7 +41,7 @@ def main(page: ft.Page):
         # else:
         #     page.floating_action_button.visible = False
         body_content.content = content
-        body_content.update()
+        # body_content.update()
 
 
     nav_sig.connect(oe_nav_by_index,'nav_drawer',False)
@@ -55,6 +56,7 @@ def main(page: ft.Page):
     page.appbar = AppBar()
     page.drawer = NavDrawer()
     # page.floating_action_button = ft.FloatingActionButton('保存',visible=False)
+    body_content.content = NAV_ROUTES.get(0)
     page.add(body_content)
 
 
