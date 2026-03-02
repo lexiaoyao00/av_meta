@@ -3,5 +3,5 @@ __all__ = [
     'SettingsView',
 ]
 
-from .home_view import HomeView
-from .settings_view import SettingsView
+from .home.home_view import HomeView
+from .settings.settings_view import SettingsView
