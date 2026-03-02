@@ -10,6 +10,7 @@ ui_sig_namespace = Namespace()     # 前端信号
 
 nav_sig = ui_sig_namespace.signal('nav')
 start_scan_asig = ui_sig_namespace.signal('start_scan')
+clean_metainfo_sig = ui_sig_namespace.signal('clean_metainfo')
 
 dir_settings_submit_sig = ui_sig_namespace.signal('dir_settings_changed')
 

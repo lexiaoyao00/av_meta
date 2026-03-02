@@ -1,7 +1,14 @@
 import flet as ft
 from config import settings
 from widgets import Error,Prompt
-from utils.signals import start_scan_asig,update_settings_sig,show_matadata_asig,scan_failed_asig,organize_finished_asig
+from utils.signals import (
+    start_scan_asig,
+    update_settings_sig,
+    show_matadata_asig,
+    scan_failed_asig,
+    organize_finished_asig,
+    clean_metainfo_sig,
+    )
 from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 from core import state_manager
 import asyncio
@@ -37,6 +44,7 @@ class SearchRow(ft.Row):
             self.page.show_dialog(Error("请先选择目录"))
             return
 
+        clean_metainfo_sig.send('start_scan')
         await start_scan_asig.send_async('start_scan', path = self._select_dir)
 
 
@@ -58,7 +66,7 @@ class MetaInfo(ft.Container):
         self.rebuild()
 
         show_matadata_asig.connect(self.oe_update_meta)
-        start_scan_asig.connect(self.rebuild)
+        clean_metainfo_sig.connect(self.oe_clean_metainfo)
 
 
     def rebuild(self):
@@ -94,6 +102,22 @@ class MetaInfo(ft.Container):
 
         await self.show_metadata(metadata)
 
+    def oe_clean_metainfo(self, sender, **kw):
+        # print('meta into rebuild')
+        self.clean_value()
+
+    def clean_value(self):
+        self.ref_code.current.value = ""
+        self.ref_site.current.value = ""
+        self.ref_title.current.value = ""
+        self.ref_actor.current.value = ""
+        self.ref_tag.current.value = ""
+        self.ref_intro.current.value = ""
+        self.ref_director.current.value = ""
+        self.ref_maker.current.value = ""
+        self.ref_publisher.current.value = ""
+
+        self.update()
 
     async def show_metadata(self, metadata : NfoMovieModel):
         self.ref_code.current.value = metadata.num_code
@@ -139,6 +163,7 @@ class CoverView(ft.Container):
         self.rebuild()
 
         show_matadata_asig.connect(self.oe_update_meta)
+        clean_metainfo_sig.connect(self.oe_clean_metainfo)
 
     def rebuild(self):
         self.content = ft.Row(
@@ -160,6 +185,15 @@ class CoverView(ft.Container):
         )
 
 
+    def oe_clean_metainfo(self, sender, **kw):
+        self.clean_value()
+
+
+    def clean_value(self):
+        self.ref_cover.current.src = 'src/assets/default_cover.jpg'
+        self.ref_thumb.current.src = 'src/assets/default_tumb.jpg'
+
+        self.update()
 
     async def oe_update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
@@ -256,6 +290,7 @@ class SideInfoArea(ft.Container):
         )
 
         organize_finished_asig.connect(self.oe_organize_finished)
+        clean_metainfo_sig.connect(self.oe_clean_metainfo)
 
     def append_success(self, file_name : str):
         self.ref_success_et.current.controls.append(FileTile(file_name=file_name))
@@ -264,6 +299,13 @@ class SideInfoArea(ft.Container):
     def append_fail(self, file_name : str):
         self.ref_fail_et.current.controls.append(FileTile(file_name=file_name,success=False))
         self.ref_fail_et.current.update()
+
+
+    def clean_value(self):
+        self.ref_success_et.current.controls.clear()
+        self.ref_fail_et.current.controls.clear()
+
+        self.update()
 
     async def oe_scan_failed(self, sender, **kw):
         file_name : str = kw.get('failed_file')
@@ -274,6 +316,9 @@ class SideInfoArea(ft.Container):
         file_name : str = kw.get('file_name')
         if file_name:
             self.append_success(file_name)
+
+    def oe_clean_metainfo(self, sender, **kw):
+        self.clean_value()
 
 @ft.control
 class HomeView(ft.Container):
