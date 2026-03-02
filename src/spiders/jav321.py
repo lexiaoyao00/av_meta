@@ -1,5 +1,5 @@
 from core.crawler_async import AsyncBaseCrawler
-from schemas.movie import (
+from schemas import (
     NfoActorModel,
     NfoMovieImageModel,
     NfoMovieTagModel,

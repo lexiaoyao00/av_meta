@@ -1,7 +1,7 @@
 
 from pydantic import BaseModel
 from typing import List, Dict,Optional
-from schemas.movie import  NfoMovieModel
+from schemas import  NfoMovieModel
 from utils.decorator import singleton
 from utils.signals import (
     update_metadata_asig,

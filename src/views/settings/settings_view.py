@@ -2,6 +2,7 @@ import flet as ft
 
 from .dir_settings import DirContainer
 from .rule_settings import RuleContainer
+from .format_settingss import FormatContainer
 @ft.control
 class SettingsTabBar(ft.TabBar):
     def __init__(self):
@@ -11,6 +12,7 @@ class SettingsTabBar(ft.TabBar):
         self.tabs=[
                 ft.Tab(label="目录"),
                 ft.Tab(label="规则"),
+                ft.Tab(label="格式")
             ]
 
 @ft.control
@@ -22,7 +24,8 @@ class SettingsTabBarView(ft.TabBarView):
         self.expand = True
         self.controls=[
                 DirContainer(),
-                RuleContainer()
+                RuleContainer(),
+                FormatContainer()
             ]
 
 @ft.control

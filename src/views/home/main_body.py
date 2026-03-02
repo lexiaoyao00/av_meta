@@ -9,7 +9,7 @@ from utils.signals import (
     clean_metainfo_sig,
     )
 from widgets import Error,Prompt
-from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
+from schemas import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 
 
 

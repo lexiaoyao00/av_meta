@@ -10,7 +10,7 @@ from modules.analysis_file import AnalysisFile
 from loguru import logger
 from typing import List
 import asyncio
-from schemas.movie import  NfoMovieModel
+from schemas import  NfoMovieModel
 from core.crawler_async import AsyncBaseCrawler
 from spiders import spider_type_dict
 from utils.decorator import singleton

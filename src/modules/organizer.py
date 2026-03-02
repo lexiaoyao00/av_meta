@@ -1,10 +1,6 @@
-from schemas.movie import (
-    NfoActorModel,
+from schemas import (
     NfoMovieImageModel,
-    NfoMovieTagModel,
-    NfoMovieProductionModel,
-    NfoMovieIntroductionModel,
-    NfoMovieModel)
+    AvDir)
 from core.downloader import Downloader
 from core.app_state import AppStateManager
 from pathlib import Path
@@ -13,15 +9,9 @@ import shutil
 from loguru import logger
 from typing import List
 import asyncio
-from pydantic import BaseModel
 from utils.signals import organize_finished_asig
 
-class AvDir(BaseModel):
-    """视频保存的目录关键字"""
-    title : str
-    num_code : str
-    actor : str = 'Unknown'
-    releasedate : str = ''
+
 
 class Organizer:
     """整理文件并保存nfo文件"""
