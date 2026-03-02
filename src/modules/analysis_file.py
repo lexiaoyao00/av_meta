@@ -17,7 +17,7 @@ class AnalysisFile:
     def normalize(self,text:str) -> str:
         """替换所有常见的字符"""
         result = text.replace("_", "-")
-        result = re.sub(r'cd\d+|CD\d+', '', result)
+        result = re.sub(r'cd\d+|CD\d+', '', result)     # 去掉CD1,CD2分集
         return result
 
 

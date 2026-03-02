@@ -13,8 +13,8 @@ from typing import Dict,Type
 from core.crawler_async import AsyncBaseCrawler
 
 
-spider_type_dict : Dict[str, Type[AsyncBaseCrawler]] = {
+SPIDER_TYPE_MAP : Dict[str, Type[AsyncBaseCrawler]] = {
     'javdb' : JavDBSpider,
-    'jav321': Jav321Spider,
     'javbus': JavBusSpider,
+    'jav321': Jav321Spider,
 }

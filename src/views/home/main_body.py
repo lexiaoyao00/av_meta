@@ -99,6 +99,7 @@ class MetaInfo(ft.Container):
         if not metadata:
             return
 
+        self.clean_value()
         await self.show_metadata(metadata)
 
     def oe_clean_metainfo(self, sender, **kw):
@@ -199,6 +200,7 @@ class CoverView(ft.Container):
         if not metadata:
             return
 
+        self.clean_value()
         await self.show_metadata_imgs(metadata)
 
     async def show_metadata_imgs(self, metadata : NfoMovieModel):

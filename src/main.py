@@ -1,5 +1,5 @@
 import flet as ft
-from widgets import NavDrawer,AppBar
+from widgets import NavDrawer,AppBar,BottomAppBar
 from utils.signals import nav_sig
 from views import HomeView, SettingsView
 from config import save_current_settings
@@ -54,6 +54,7 @@ def main(page: ft.Page):
     page.on_close = on_close
 
     page.appbar = AppBar()
+    page.bottom_appbar = BottomAppBar()
     page.drawer = NavDrawer()
     # page.floating_action_button = ft.FloatingActionButton('保存',visible=False)
     body_content.content = NAV_ROUTES.get(0)

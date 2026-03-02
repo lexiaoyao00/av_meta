@@ -19,7 +19,9 @@ be_sig_namespace = Namespace()      # 后端信号
 download_progress_sig = be_sig_namespace.signal('download_progress')
 download_finished_sig = be_sig_namespace.signal('download_finished')
 
+scan_success_asig = be_sig_namespace.signal('scan_success')    # 搜刮成功
 scan_failed_asig = be_sig_namespace.signal('scan_failed')    # 搜刮失败
+scan_finished_asig = be_sig_namespace.signal('scan_finished')    # 搜刮完成
 analysis_file_sig = be_sig_namespace.signal('analysis_file')    # 解析文件
 scrape_finished_asig = be_sig_namespace.signal('scrape_finished')    # 爬虫完成
 del_failed_file_asig = be_sig_namespace.signal('del_failed')    # 删除失败文件，第二次搜刮成功后删除原先失败的文件

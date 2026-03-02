@@ -143,7 +143,7 @@ class Organizer:
                 return
             logger.info(f'移动文件 {str(file_path)} 到 {self.organized_file}')
             self.organized_file.parent.mkdir(parents=True, exist_ok=True)
-            # shutil.move(self.orgin_file, self.organized_file)
+            shutil.move(file_path, self.organized_file)
 
         if settings.download_imgs:
             logger.info(f'开始下载 {self.orgin_file} 的图片')

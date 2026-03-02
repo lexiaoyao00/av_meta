@@ -4,6 +4,7 @@ from utils.signals import (
     show_matadata_asig,
     organize_finished_asig,
     clean_metainfo_sig,
+    scrape_finished_asig,
     )
 from core import state_manager
 from widgets import Prompt
@@ -69,6 +70,7 @@ class SideInfoArea(ft.Container):
         )
 
         organize_finished_asig.connect(self.oe_organize_finished)
+        scrape_finished_asig.connect(self.oe_scan_failed)
         clean_metainfo_sig.connect(self.oe_clean_metainfo)
 
     def append_success(self, file_name : str):
@@ -87,9 +89,9 @@ class SideInfoArea(ft.Container):
         self.update()
 
     async def oe_scan_failed(self, sender, **kw):
-        file_name : str = kw.get('failed_file')
-        if file_name:
-            self.append_fail(file_name)
+        failed_files = list(state_manager.app_state.failed_file.keys())
+        self.ref_fail_et.current.controls = [FileTile(file_name=file_name,success=False) for file_name in failed_files]
+        self.ref_fail_et.current.update()
 
     async def oe_organize_finished(self, sender, **kw):
         file_name : str = kw.get('file_name')

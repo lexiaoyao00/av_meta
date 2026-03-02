@@ -1,10 +1,12 @@
 from utils.signals import (
     start_scan_asig,
+    scan_success_asig,
     scan_failed_asig,
     update_metadata_asig,
     show_matadata_asig,
     scrape_finished_asig,
     organize_finished_asig,
+    del_failed_file_asig,
     )
 from modules.analysis_file import AnalysisFile
 from loguru import logger
@@ -12,7 +14,7 @@ from typing import List
 import asyncio
 from schemas import  NfoMovieModel
 from core.crawler_async import AsyncBaseCrawler
-from spiders import spider_type_dict
+from spiders import SPIDER_TYPE_MAP
 from config import settings
 from utils.decorator import singleton
 from core.app_state import AppStateManager
@@ -42,7 +44,9 @@ class Controller:
             if result:
                 pending_files.pop(file,None)
                 logger.info(f'文件 {file} 在 {spider_name} 爬虫中爬取成功')
+                await scan_success_asig.send_async('controller', file_name=file)
                 asyncio.create_task(update_metadata_asig.send_async('controller', file_name=file, metadata=result))
+                asyncio.create_task(del_failed_file_asig.send_async('controller', file_name=file))  # 爬取成功后从失败列表中删除
                 # file_stem = file.split('.')[0]
                 # save_path = f'output/{file_stem}.nfo'
                 # result.save_to_nfo(save_path)
@@ -67,7 +71,7 @@ class Controller:
         settings.spider_order
         for spider_name in settings.spider_order:
             logger.info(f'当前爬虫是 {spider_name}')
-            spider_cls = spider_type_dict.get(spider_name)
+            spider_cls = SPIDER_TYPE_MAP.get(spider_name)
             if not spider_cls:
                 logger.error(f'没有找到爬虫 {spider_name}')
                 continue
