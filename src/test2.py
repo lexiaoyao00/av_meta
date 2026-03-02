@@ -2,47 +2,32 @@ import flet as ft
 
 
 def main(page: ft.Page):
+    def on_reorder(e: ft.OnReorderEvent):
+        e.control.controls.insert(e.new_index, e.control.controls.pop(e.old_index))
+        print(e)
+
+    def on_reorder_end(e: ft.OnReorderEvent):
+        print(e)
+        # e.control.controls.insert(e.new_index, e.control.controls.pop(e.old_index))
+
     page.add(
-        ft.Tabs(
-            selected_index=1,
-            length=3,
+        ft.ReorderableListView(
             expand=True,
-            content=ft.Column(
-                expand=True,
-                controls=[
-                    ft.TabBar(
-                        tabs=[
-                            ft.Tab(label="Tab 1", icon=ft.Icons.SETTINGS_PHONE),
-                            ft.Tab(label="Tab 2", icon=ft.Icons.SETTINGS),
-                            ft.Tab(
-                                label=ft.CircleAvatar(
-                                    foreground_image_src="https://avatars.githubusercontent.com/u/102273996?s=200&amp;v=4",
-                                ),
-                            ),
-                        ]
+            show_default_drag_handles=False,
+            on_reorder=on_reorder,
+            # on_reorder_end=on_reorder_end,
+            controls=[
+                ft.ListTile(
+                    title=ft.Text(f"Draggable Item {i}", color=ft.Colors.BLACK),
+                    leading=ft.ReorderableDragHandle(
+                        content=ft.Icon(ft.Icons.DRAG_INDICATOR, color=ft.Colors.RED),
+                        mouse_cursor=ft.MouseCursor.GRAB,
                     ),
-                    ft.TabBarView(
-                        expand=True,
-                        controls=[
-                            ft.Container(
-                                content=ft.Text("This is Tab 1"),
-                                alignment=ft.Alignment.CENTER,
-                            ),
-                            ft.Container(
-                                content=ft.Text("This is Tab 2"),
-                                alignment=ft.Alignment.CENTER,
-                            ),
-                            ft.Container(
-                                content=ft.Text("This is Tab 3"),
-                                alignment=ft.Alignment.CENTER,
-                            ),
-                        ],
-                    ),
-                ],
-            ),
+                )
+                for i in range(10)
+            ],
         )
     )
 
 
-if __name__ == "__main__":
-    ft.run(main)
+ft.run(main)

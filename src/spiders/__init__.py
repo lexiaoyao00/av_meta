@@ -7,6 +7,7 @@ __all__ = [
 from .jav321 import Jav321Spider
 from .javbus import JavBusSpider
 from .javdb import JavDBSpider
+from .missav import MissavSpider
 
 from typing import Dict,Type
 from core.crawler_async import AsyncBaseCrawler

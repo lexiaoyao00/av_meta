@@ -13,6 +13,7 @@ import asyncio
 from schemas import  NfoMovieModel
 from core.crawler_async import AsyncBaseCrawler
 from spiders import spider_type_dict
+from config import settings
 from utils.decorator import singleton
 from core.app_state import AppStateManager
 from modules.organizer import Organizer
@@ -63,10 +64,15 @@ class Controller:
         file_list = analysis_file.get_video_path_list()
         pending_files = await analysis_file.extract_av_code(files=file_list)
 
-        for name,spider_cls in spider_type_dict.items():
-            logger.info(f'当前爬虫是 {name}')
+        settings.spider_order
+        for spider_name in settings.spider_order:
+            logger.info(f'当前爬虫是 {spider_name}')
+            spider_cls = spider_type_dict.get(spider_name)
+            if not spider_cls:
+                logger.error(f'没有找到爬虫 {spider_name}')
+                continue
             spider = spider_cls()
-            await self.scrape(name, spider, pending_files)
+            await self.scrape(spider_name, spider, pending_files)
             await asyncio.sleep(1)      # 等待一秒更新数据
             if not self.app_state_manager.app_state.failed_file:    # 如果所有文件都成功，则退出循环
                 logger.debug(f'所有文件都成功，退出爬虫循环')

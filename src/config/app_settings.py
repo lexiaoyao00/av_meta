@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, model_validator,ConfigDict
 from pathlib import Path
 import json
-from typing import Any
+from typing import Any,List,Optional
+from spiders import spider_type_dict
 
 PRO_PATH = Path(__file__).parent.parent.parent
 
@@ -18,6 +19,7 @@ class BaseSettings(BaseModel):
     download_imgs : bool = True # 是否下载图片
     move_src_file : bool = False # 是否移动源文件到输出目录
 
+    spider_order : List[str] = None
     # 格式管理
     output_dir_name : str = '{actor}/{num_code}-{title}-{releasedate}' # 输出文件目录格式
 
@@ -28,6 +30,8 @@ class BaseSettings(BaseModel):
             self.output_dir = "output"
         if self.log_dir is None:
             self.log_dir = str(PRO_PATH / "log")
+        if self.spider_order is None:
+            self.spider_order = list(spider_type_dict.keys())
         return self
 
 class Settings(BaseSettings):

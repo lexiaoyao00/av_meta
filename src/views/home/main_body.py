@@ -4,11 +4,9 @@ from utils.signals import (
     start_scan_asig,
     update_settings_sig,
     show_matadata_asig,
-    scan_failed_asig,
-    organize_finished_asig,
     clean_metainfo_sig,
     )
-from widgets import Error,Prompt
+from widgets import Error
 from schemas import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 
 
