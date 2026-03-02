@@ -11,7 +11,6 @@ class DirContainer(ft.Container):
             '输出目录' : 'output_dir',
         }
 
-    def build(self):
         self.content = ft.Column(
             expand=True,
             scroll=ft.ScrollMode.AUTO,
@@ -42,7 +41,6 @@ class RuleContainer(ft.Container):
         self.ref_download_imgs = ft.Ref[ft.Checkbox]()
         self.ref_move_src_file = ft.Ref[ft.Checkbox]()
 
-    def build(self):
         self.content = ft.Column(
             expand=True,
             scroll=ft.ScrollMode.AUTO,
@@ -91,7 +89,6 @@ class SettingsTabs(ft.Column):
         self._tab_bar_view = SettingsTabBarView()
         self.tab_length = len(self._tab_bar.tabs)
 
-    def build(self):
         self.controls = [
             self._tab_bar,
             self._tab_bar_view
@@ -102,10 +99,13 @@ class SettingsTabs(ft.Column):
 class SettingsView(ft.Container):
     expand : bool = True
 
-    def build(self):
-        self.page.appbar.title = 'Settings'
+    def init(self):
         settings_tabs = SettingsTabs()
         self.content = ft.Tabs(
             length= settings_tabs.tab_length,
             content= settings_tabs
         )
+
+    def build(self):
+        self.page.appbar.title = 'Settings'
+

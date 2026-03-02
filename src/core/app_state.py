@@ -4,9 +4,9 @@ from typing import List, Dict,Optional
 from schemas.movie import  NfoMovieModel
 from utils.decorator import singleton
 from utils.signals import (
-    update_metadata_sig,
-    scan_failed_sig,
-    del_failed_file_sig,
+    update_metadata_asig,
+    scan_failed_asig,
+    del_failed_file_asig,
     analysis_file_sig,
     )
 from loguru import logger
@@ -33,9 +33,9 @@ class AppStateManager:
         self.app_state = AppState()
         self._async_lock = asyncio.Lock()
 
-        update_metadata_sig.connect(self.oe_update_metadata)
-        scan_failed_sig.connect(self.update_failed_file)
-        del_failed_file_sig.connect(self.ov_del_failed_file)
+        update_metadata_asig.connect(self.oe_update_metadata)
+        scan_failed_asig.connect(self.update_failed_file)
+        del_failed_file_asig.connect(self.ov_del_failed_file)
         analysis_file_sig.connect(self.oe_set_files_path)
 
     def oe_set_files_path(self, sender, **kw):

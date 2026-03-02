@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from utils.files import judge_file_type,FileType
 from typing import Dict,List,Tuple
-from utils.signals import scan_failed_sig,analysis_file_sig
+from utils.signals import scan_failed_asig,analysis_file_sig
 from loguru import logger
 import asyncio
 
@@ -50,11 +50,11 @@ class AnalysisFile:
             stem = file.stem
             matches = self._extract_av_code(stem)
             if not matches:
-                asyncio.create_task(scan_failed_sig.send_async('analysis_file', failed_file=file, msg="提取番号失败"))
+                asyncio.create_task(scan_failed_asig.send_async('analysis_file', failed_file=file, msg="提取番号失败"))
             elif len(matches) == 1:
                 success[name] = matches[0]
             else:
-                asyncio.create_task(scan_failed_sig.send_async('analysis_file', failed_file=file, msg="提取到多个番号"))
+                asyncio.create_task(scan_failed_asig.send_async('analysis_file', failed_file=file, msg="提取到多个番号"))
 
         # return (success,failed,uncertain)
         logger.info('解析文件番号完成')

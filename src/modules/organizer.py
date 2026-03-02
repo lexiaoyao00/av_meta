@@ -14,7 +14,7 @@ from loguru import logger
 from typing import List
 import asyncio
 from pydantic import BaseModel
-from utils.signals import organize_finished_sig
+from utils.signals import organize_finished_asig
 
 class AvDir(BaseModel):
     """视频保存的目录关键字"""
@@ -162,4 +162,4 @@ class Organizer:
         self._save_to_nfo()
 
         file_name = self.organized_file.name
-        asyncio.create_task(organize_finished_sig.send_async('organizer', file_name = file_name))
+        asyncio.create_task(organize_finished_asig.send_async('organizer', file_name = file_name))

@@ -1,7 +1,7 @@
 import flet as ft
 from config import settings
 from widgets import Error,Prompt
-from utils.signals import start_scan_sig,update_settings_sig,show_matadata_sig,scan_failed_sig,organize_finished_sig
+from utils.signals import start_scan_asig,update_settings_sig,show_matadata_asig,scan_failed_asig,organize_finished_asig
 from schemas.movie import NfoMovieModel,NfoMovieTagModel,NfoMovieIntroductionModel,NfoMovieProductionModel
 from core import state_manager
 import asyncio
@@ -15,7 +15,6 @@ class SearchRow(ft.Row):
         self.ref_start_btn = ft.Ref[ft.Button]()
         self._select_dir = settings.select_dir or ""
 
-    def build(self):
         self.controls = [
             ft.TextField(label='当前目录',
                          value=self._select_dir,
@@ -38,7 +37,7 @@ class SearchRow(ft.Row):
             self.page.show_dialog(Error("请先选择目录"))
             return
 
-        await start_scan_sig.send_async('start_scan', path = self._select_dir)
+        await start_scan_asig.send_async('start_scan', path = self._select_dir)
 
 
 @ft.control
@@ -56,6 +55,13 @@ class MetaInfo(ft.Container):
         self.ref_maker = ft.Ref[ft.TextField]()
         self.ref_publisher = ft.Ref[ft.TextField]()
 
+        self.rebuild()
+
+        show_matadata_asig.connect(self.oe_update_meta)
+        start_scan_asig.connect(self.rebuild)
+
+
+    def rebuild(self):
         self.content = ft.Column(
             expand=True,
             controls=[
@@ -80,8 +86,6 @@ class MetaInfo(ft.Container):
                 ),
             ]
         )
-
-        show_matadata_sig.connect(self.oe_update_meta)
 
     async def oe_update_meta(self, sender, **kw):
         metadata : NfoMovieModel = kw.get('metadata')
@@ -132,6 +136,11 @@ class CoverView(ft.Container):
         self.ref_cover = ft.Ref[ft.Image]()
         self.ref_thumb = ft.Ref[ft.Image]()
 
+        self.rebuild()
+
+        show_matadata_asig.connect(self.oe_update_meta)
+
+    def rebuild(self):
         self.content = ft.Row(
             expand=True,
             controls=[
@@ -150,7 +159,6 @@ class CoverView(ft.Container):
             ]
         )
 
-        show_matadata_sig.connect(self.oe_update_meta)
 
 
     async def oe_update_meta(self, sender, **kw):
@@ -208,7 +216,7 @@ class FileTile(ft.ListTile):
         # file_name : str = e.control.title
         meta_info = state_manager.app_state.success_file_metadata.get(self.file_name)
         if meta_info:
-            asyncio.create_task(show_matadata_sig.send_async('file_tile',metadata=meta_info))
+            asyncio.create_task(show_matadata_asig.send_async('file_tile',metadata=meta_info))
 
 
     def show_msg(self, e : ft.Event[ft.ListTile]):
@@ -247,8 +255,7 @@ class SideInfoArea(ft.Container):
             ]
         )
 
-        organize_finished_sig.connect(self.oe_organize_finished)
-        scan_failed_sig.connect(self.oe_scan_failed)
+        organize_finished_asig.connect(self.oe_organize_finished)
 
     def append_success(self, file_name : str):
         self.ref_success_et.current.controls.append(FileTile(file_name=file_name))

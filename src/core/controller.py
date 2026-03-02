@@ -1,10 +1,10 @@
 from utils.signals import (
-    start_scan_sig,
-    scan_failed_sig,
-    update_metadata_sig,
-    show_matadata_sig,
-    scrape_finished_sig,
-    organize_finished_sig,
+    start_scan_asig,
+    scan_failed_asig,
+    update_metadata_asig,
+    show_matadata_asig,
+    scrape_finished_asig,
+    organize_finished_asig,
     )
 from modules.analysis_file import AnalysisFile
 from loguru import logger
@@ -23,9 +23,9 @@ class Controller:
     """控制流程,实现一些槽函数"""
     def __init__(self):
         self.app_state_manager = AppStateManager()
-        start_scan_sig.connect(self.oe_start_scan)
-        scrape_finished_sig.connect(self.oe_scrape_finished)
-        organize_finished_sig.connect(self.oe_organize_finished)
+        start_scan_asig.connect(self.oe_start_scan)
+        scrape_finished_asig.connect(self.oe_scrape_finished)
+        organize_finished_asig.connect(self.oe_organize_finished)
         self._is_running = False
 
 
@@ -41,14 +41,14 @@ class Controller:
             if result:
                 pending_files.pop(file,None)
                 logger.info(f'文件 {file} 在 {spider_name} 爬虫中爬取成功')
-                asyncio.create_task(update_metadata_sig.send_async('controller', file_name=file, metadata=result))
+                asyncio.create_task(update_metadata_asig.send_async('controller', file_name=file, metadata=result))
                 # file_stem = file.split('.')[0]
                 # save_path = f'output/{file_stem}.nfo'
                 # result.save_to_nfo(save_path)
                 # logger.debug(f'文件 {file} 的番号信息已保存到 {save_path}')
             else:
                 logger.info(f'文件 {file} 在 {spider_name} 爬虫中爬取失败')
-                asyncio.create_task(scan_failed_sig.send_async('controller', failed_file=file, msg="爬取失败"))
+                asyncio.create_task(scan_failed_asig.send_async('controller', failed_file=file, msg="爬取失败"))
 
     async def oe_start_scan(self, sender, **kw):
         if self._is_running:
@@ -72,8 +72,7 @@ class Controller:
                 logger.debug(f'所有文件都成功，退出爬虫循环')
                 break
 
-        # show_matadata_sig.send('scaner', metadata=results[0])
-        asyncio.create_task(scrape_finished_sig.send_async('controller'))
+        asyncio.create_task(scrape_finished_asig.send_async('controller'))
 
     async def oe_scrape_finished(self, sender, **kw):
         if not self.app_state_manager.app_state.success_file_metadata:
@@ -103,4 +102,4 @@ class Controller:
         # first_item = next(iter(self.app_state_manager.app_state.success_file_metadata.items()))
 
 
-        asyncio.create_task(show_matadata_sig.send_async('controller',metadata=meta_data))
+        asyncio.create_task(show_matadata_asig.send_async('controller',metadata=meta_data))
